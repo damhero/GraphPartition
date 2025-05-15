@@ -1,8 +1,8 @@
 package com.example;
 
-import javax.swing.*;
+import com.example.ui.Frame;
 
-public class Main {
+public class App {
     public static void main(String[] args) {
         new Frame();
     }

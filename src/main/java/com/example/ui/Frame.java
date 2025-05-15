@@ -1,4 +1,4 @@
-package com.example;
+package com.example.ui;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,8 +46,10 @@ public class Frame extends JFrame {
         JMenuItem itemUploadBin = new JMenuItem("Binarny");
         itemUploadText.addActionListener(e -> System.out.println("Wczytaj tekstowy"));
         itemUploadBin.addActionListener(e -> System.out.println("Wczytaj binarny"));
+        itemUploadCSRRG.addACtionListener(e - > System.out.println("Wczytaj CSRRG"));
         menuUpload.add(itemUploadText);
         menuUpload.add(itemUploadBin);
+        menuUpload.add(itemUploadCSRRG)
 
         JMenu menuWrite = new JMenu("Zapisz");
         JMenuItem itemWriteText = new JMenuItem("Tekstowy");
