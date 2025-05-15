@@ -4,7 +4,7 @@ import javax.swing.*;
 import javax.swing.JFrame;
 
 public class Frame extends JFrame {
-     Frame() {
+     public Frame() {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Aplikacja do podziału grafu");
 

@@ -12,10 +12,10 @@ public class CSRRGParser {
     private ArrayList<Integer> adjacencyList4;
     private ArrayList<Integer> adjacencyIndices5;
 
-    public void CSRRGParser(String fileName) {
+    public CSRRGParser(String fileName) {
         try {
-            File file = new File(fileName);
-            BufferedReader br = new BufferedReader(new FileReader(file));
+            InputStream is = getClass().getClassLoader().getResourceAsStream(fileName);
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String line;
             int  lineNumber = 0;
             while ((line = br.readLine()) != null) {
@@ -65,6 +65,25 @@ public class CSRRGParser {
 
     //gettery
 
+    public int getMaxVertices1() {
+        return maxVertices1;
+    }
+
+    public ArrayList<Integer> getVerticesList2() {
+        return verticesList2;
+    }
+
+    public ArrayList<Integer> getVerticesPlacement3() {
+        return verticesPlacement3;
+    }
+
+    public ArrayList<Integer> getAdjacencyList4() {
+        return adjacencyList4;
+    }
+
+    public ArrayList<Integer> getAdjacencyIndices5() {
+        return adjacencyIndices5;
+    }
 
     //funkcje pomocnicze
     ArrayList<Integer> parseLineToList(String line) {
