@@ -1,5 +1,7 @@
 package com.example.ui;
 
+import com.example.PreferencesForm;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -44,12 +46,13 @@ public class Frame extends JFrame {
         JMenu menuUpload = new JMenu("Wczytaj");
         JMenuItem itemUploadText = new JMenuItem("Tekstowy");
         JMenuItem itemUploadBin = new JMenuItem("Binarny");
+        JMenuItem itemUploadCSRRG = new JMenuItem("CSRRG");
         itemUploadText.addActionListener(e -> System.out.println("Wczytaj tekstowy"));
         itemUploadBin.addActionListener(e -> System.out.println("Wczytaj binarny"));
-        itemUploadCSRRG.addACtionListener(e - > System.out.println("Wczytaj CSRRG"));
+        itemUploadCSRRG.addActionListener(e -> System.out.println("Wczytaj CSRRG"));
         menuUpload.add(itemUploadText);
         menuUpload.add(itemUploadBin);
-        menuUpload.add(itemUploadCSRRG)
+        menuUpload.add(itemUploadCSRRG);
 
         JMenu menuWrite = new JMenu("Zapisz");
         JMenuItem itemWriteText = new JMenuItem("Tekstowy");
