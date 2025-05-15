@@ -1,4 +1,4 @@
-package com.example;
+package com.example.ui;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
