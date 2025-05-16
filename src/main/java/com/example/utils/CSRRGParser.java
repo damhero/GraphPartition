@@ -35,6 +35,7 @@ public class CSRRGParser {
             br.close();
         }
         catch (Exception e) {
+            //TODO: komunikaty na ekranie.
             System.err.println("[!] Błąd podczas parsowania CSRRG" + e);
             System.exit(1);
         }
