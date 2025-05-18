@@ -38,6 +38,8 @@ public class Frame extends JFrame {
 
     }
 
+
+
     private void setResolution(){
         prefsForm.getResolutionComboBox().addActionListener(e -> {
             String selected = (String) prefsForm.getResolutionComboBox().getSelectedItem();

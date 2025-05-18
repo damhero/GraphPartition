@@ -2,11 +2,13 @@ package com.example;
 
 import com.example.model.Graph;
 import com.example.ui.Frame;
+import com.example.ui.LanguageManager;
 import com.example.utils.CSRRGParser;
 import com.example.model.Group;
 import com.example.utils.TXTParser;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class App {
     public static void main(String[] args) {
@@ -14,8 +16,8 @@ public class App {
 
 
         //testy dla parserów
-        CSRRGParser csrrg = new CSRRGParser("graf.csrrg");
-        ArrayList<Group> parted = TXTParser.parse("graf_2.txt");
+        CSRRGParser csrrg = new CSRRGParser("graphs/graf.csrrg");
+        ArrayList<Group> parted = TXTParser.parse("graphs/graf_2.txt");
         Graph graph = new Graph(csrrg.getVerticesList2().toArray().length, csrrg.getAdjacencyList4(), csrrg.getAdjacencyIndices5());
 
         System.out.println("CSRRG loaded graph:");

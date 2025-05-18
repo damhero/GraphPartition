@@ -48,6 +48,7 @@ public class MainFrame {
         }
     }
 
+
     public JPanel getMainPanel() {
         return mainPanel;
     }
