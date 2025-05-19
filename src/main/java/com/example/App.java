@@ -1,18 +1,16 @@
 package com.example;
 
 import com.example.model.Graph;
-import com.example.ui.Frame;
-import com.example.ui.LanguageManager;
+import com.example.ui.AppFrame;
 import com.example.utils.CSRRGParser;
 import com.example.model.Group;
 import com.example.utils.TXTParser;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class App {
     public static void main(String[] args) {
-        new Frame();
+        new AppFrame();
 
 
         //testy dla parserów

@@ -4,22 +4,24 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
-import java.net.URL;
 
-public class Frame extends JFrame {
+public class AppFrame extends JFrame {
     private final JPanel cards; // główny panel z CardLayout
-    private final MainFrame mainFrame;
-    private final PreferencesForm prefsForm;
+    private final MainView mainFrame;
+    private final PreferencesView prefsForm;
 
-    public Frame() {
-        setTitle("Aplikacja do podziału grafu");
+    public AppFrame() {
+        setTitle(LanguageManager.get("app.title"));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200, 800);
+        setSize(1024, 768);
         setLocationRelativeTo(null);
 
         // utwórz widoki
-        mainFrame = new MainFrame();
-        prefsForm = new PreferencesForm();
+        mainFrame = new MainView();
+        mainFrame.setAppFrame(this);
+
+        prefsForm = new PreferencesView();
+        prefsForm.setAppFrame(this);
 
 
 
@@ -33,12 +35,26 @@ public class Frame extends JFrame {
         setContentPane(cards);
         setJMenuBar(createMenuBar());
 
+        updateLanguage();
+
+
+
         setVisible(true);
         setResolution();
 
     }
+    public void updateLanguage() {
+        setTitle(LanguageManager.get("app.title"));
+        setJMenuBar(createMenuBar());
+        revalidate();
+        repaint();
 
 
+        mainFrame.applyLanguage();
+        prefsForm.applyLanguage();
+        // Dodaj tu inne widoki, jeśli masz
+        // np. helpView.applyLanguage();
+    }
 
     private void setResolution(){
         prefsForm.getResolutionComboBox().addActionListener(e -> {
@@ -67,19 +83,19 @@ public class Frame extends JFrame {
     }
 
     private JMenu createFileMenu() {
-        JMenu menuFile = new JMenu("Plik");
+        JMenu menuFile = new JMenu(LanguageManager.get("menu.file"));
 
-        JMenu menuUpload = new JMenu("Wczytaj");
-        JMenuItem itemUploadText = new JMenuItem("Tekstowy");
-        JMenuItem itemUploadBin = new JMenuItem("Binarny");
+        JMenu menuUpload = new JMenu(LanguageManager.get("menu.upload"));
+        JMenuItem itemUploadText = new JMenuItem(LanguageManager.get("menu.upload.text"));
+        JMenuItem itemUploadBin = new JMenuItem(LanguageManager.get("menu.upload.bin"));
         itemUploadText.addActionListener(e -> openFile("txt"));
         itemUploadBin.addActionListener(e -> openFile("bin"));
         menuUpload.add(itemUploadText);
         menuUpload.add(itemUploadBin);
 
-        JMenu menuWrite = new JMenu("Zapisz");
-        JMenuItem itemWriteText = new JMenuItem("Tekstowy");
-        JMenuItem itemWriteBin = new JMenuItem("Binarny");
+        JMenu menuWrite = new JMenu(LanguageManager.get("menu.write"));
+        JMenuItem itemWriteText = new JMenuItem(LanguageManager.get("menu.write.text"));
+        JMenuItem itemWriteBin = new JMenuItem(LanguageManager.get("menu.write.bin"));
         itemWriteText.addActionListener(e -> System.out.println("Zapisz tekstowy"));
         itemWriteBin.addActionListener(e -> System.out.println("Zapisz binarny"));
         menuWrite.add(itemWriteText);
@@ -92,10 +108,10 @@ public class Frame extends JFrame {
     }
 
     private JMenu createEditMenu() {
-        JMenu menuEdit = new JMenu("Edycja");
+        JMenu menuEdit = new JMenu(LanguageManager.get("menu.edit"));
 
-        JMenuItem itemVizSettings = new JMenuItem("Ustawienia wizualizacji");
-        JMenuItem itemPreferences = new JMenuItem("Preferencje");
+        JMenuItem itemVizSettings = new JMenuItem(LanguageManager.get("menu.viz.settings"));
+        JMenuItem itemPreferences = new JMenuItem(LanguageManager.get("menu.preferences"));
 
         itemVizSettings.addActionListener(e -> System.out.println("Ustawienia wizualizacji"));
         itemPreferences.addActionListener(e -> switchView("PREFS"));
@@ -107,32 +123,25 @@ public class Frame extends JFrame {
     }
 
     private JMenu createToolsMenu() {
-        JMenu menuTools = new JMenu("Narzędzia");
+        JMenu menuTools = new JMenu(LanguageManager.get("menu.tools"));
 
-        JMenuItem itemPartition = new JMenuItem("Wykonaj podział grafu");
-        JMenuItem itemAnalyze = new JMenuItem("Analizuj wynik podziału");
+        JMenuItem itemAnalyze = new JMenuItem(LanguageManager.get("menu.analyze"));
 
-        itemPartition.addActionListener(e -> System.out.println("Wykonaj podział grafu"));
         itemAnalyze.addActionListener(e -> System.out.println("Analiza podziału"));
 
-        menuTools.add(itemPartition);
         menuTools.add(itemAnalyze);
 
         return menuTools;
     }
 
     private JMenu createHelpMenu() {
-        JMenu menuHelp = new JMenu("Pomoc");
+        JMenu menuHelp = new JMenu(LanguageManager.get("menu.help"));
 
-        JMenuItem itemManual = new JMenuItem("Instrukcja obsługi");
-        JMenuItem itemAbout = new JMenuItem("O programie");
+        JMenuItem itemManual = new JMenuItem(LanguageManager.get("menu.manual"));
+        JMenuItem itemAbout = new JMenuItem(LanguageManager.get("menu.about"));
 
         itemManual.addActionListener(e -> JOptionPane.showMessageDialog(this, "Instrukcja jeszcze niedostępna."));
-        itemAbout.addActionListener(e -> JOptionPane.showMessageDialog(this,
-                "Niniejsza aplikacja została zaprojektowana na potrzeby zajęć w ramach przedmiotu Języki i metodyka programowania 2\n" +
-                        "realizowanego podczas drugiego semestru studiów 1 stopnia Informatyka Stosowna na wydziale Elektrycznym Politechniki Warszawskiej\n" +
-                        "Maj 2025\n" +
-                        "Autorzy: Damian Brudkowski i Wojciech Ziembowicz", "O programie", JOptionPane.INFORMATION_MESSAGE));
+        itemAbout.addActionListener(e -> JOptionPane.showMessageDialog(this, LanguageManager.get("about.text")));
 
         menuHelp.add(itemManual);
         menuHelp.add(itemAbout);
