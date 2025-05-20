@@ -1,5 +1,7 @@
 package com.example.ui;
 
+import com.example.utils.LanguageManager;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
