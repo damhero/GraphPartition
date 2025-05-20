@@ -8,8 +8,12 @@ import com.example.utils.TXTParser;
 
 import java.util.ArrayList;
 
+import com.example.utils.ThemeManager;
+import com.formdev.flatlaf.FlatDarkLaf;
+
 public class App {
     public static void main(String[] args) {
+        ThemeManager.setupDefault();
         new AppFrame();
 
 

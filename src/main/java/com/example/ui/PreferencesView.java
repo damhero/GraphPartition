@@ -1,6 +1,7 @@
 package com.example.ui;
 
 import com.example.utils.LanguageManager;
+import java.util.function.Consumer;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -43,6 +44,14 @@ public class PreferencesView {
             }
         });
     }
+    public void onThemeChanged(Consumer<String> handler) {
+        themeComboBox.addActionListener(e -> {
+            String selected = (String) themeComboBox.getSelectedItem();
+            if (selected != null) {
+                handler.accept(selected);
+            }
+        });
+    }
 
     public void applyLanguage() {
         languageLabel.setText(LanguageManager.get("label.language"));
@@ -50,31 +59,29 @@ public class PreferencesView {
         backButton.setText(LanguageManager.get("button.back"));
         themeLabel.setText(LanguageManager.get("label.theme"));
 
-        // 🔸 Zachowaj bieżący wybór
-        Object selectedLanguage = languageComboBox.getSelectedItem();
-        Object selectedResolution = resolutionComboBox.getSelectedItem();
-        Object selectedTheme = themeComboBox.getSelectedItem();
+        // 🔸 Zachowaj wybrane indeksy
+        int selectedLangIdx = languageComboBox.getSelectedIndex();
+        int selectedResIdx = resolutionComboBox.getSelectedIndex();
+        int selectedThemeIdx = themeComboBox.getSelectedIndex();
 
-        // 🔹 Ustaw nowe wartości języków
+// 🔹 Wypełnij na nowo ComboBoxy
         languageComboBox.removeAllItems();
         languageComboBox.addItem(LanguageManager.get("language.option.polish"));
         languageComboBox.addItem(LanguageManager.get("language.option.english"));
 
-        // 🔹 Ustaw nowe wartości rozdzielczości
         resolutionComboBox.removeAllItems();
         resolutionComboBox.addItem(LanguageManager.get("resolution.option.1"));
         resolutionComboBox.addItem(LanguageManager.get("resolution.option.2"));
         resolutionComboBox.addItem(LanguageManager.get("resolution.option.3"));
 
-        // 🔹 Ustaw nowe wartości motywu
         themeComboBox.removeAllItems();
         themeComboBox.addItem(LanguageManager.get("theme.option.light"));
         themeComboBox.addItem(LanguageManager.get("theme.option.dark"));
 
-        // 🔸 Przywróć poprzedni wybór, jeśli nadal istnieje
-        resolutionComboBox.setSelectedItem(selectedResolution);
-        languageComboBox.setSelectedItem(selectedLanguage);
-        themeComboBox.setSelectedItem(selectedResolution);
+// 🔸 Przywróć wcześniejsze wybory
+        languageComboBox.setSelectedIndex(Math.max(0, selectedLangIdx));
+        resolutionComboBox.setSelectedIndex(Math.max(0, selectedResIdx));
+        themeComboBox.setSelectedIndex(Math.max(0, selectedThemeIdx));
     }
 
     // Gettery
