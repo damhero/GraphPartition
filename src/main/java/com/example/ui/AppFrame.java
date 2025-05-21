@@ -99,10 +99,13 @@ public class AppFrame extends JFrame {
         JMenu menuUpload = new JMenu(LanguageManager.get("menu.upload"));
         JMenuItem itemUploadText = new JMenuItem(LanguageManager.get("menu.upload.text"));
         JMenuItem itemUploadBin = new JMenuItem(LanguageManager.get("menu.upload.bin"));
+        JMenuItem itemUploadCSRRG = new JMenuItem(LanguageManager.get("menu.upload.csrrg"));
         itemUploadText.addActionListener(e -> openFile("txt"));
         itemUploadBin.addActionListener(e -> openFile("bin"));
+        itemUploadCSRRG.addActionListener(e -> openFile("csrrg"));
         menuUpload.add(itemUploadText);
         menuUpload.add(itemUploadBin);
+        menuUpload.add(itemUploadCSRRG);
 
         JMenu menuWrite = new JMenu(LanguageManager.get("menu.write"));
         JMenuItem itemWriteText = new JMenuItem(LanguageManager.get("menu.write.text"));
@@ -177,7 +180,7 @@ public class AppFrame extends JFrame {
                 JOptionPane.showMessageDialog(this,
                         "Plik wczytany: " + selectedFile.getAbsolutePath(),
                         "Sukces", JOptionPane.INFORMATION_MESSAGE);
-                // TODO: tutaj wczytaj zawartość pliku
+                // TODO: tutaj wczytaj zawartość plik
             }
         }
     }

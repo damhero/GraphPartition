@@ -2,35 +2,32 @@ package com.example.utils;
 
 import com.example.model.Group;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class TXTParser {
 
-    public static ArrayList<Group> parse(String fileName) {
+    public static ArrayList<Group> parse(File txtFile) {
 
         ArrayList<Group> partedGraph = new ArrayList<Group>();
 
      try{
-         InputStream is = TXTParser.class.getResourceAsStream("/" + fileName);
-        if(is == null) throw new IllegalAccessException("Nie znaleziono pliku: " + fileName);
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        String line;
-        int vertexCount = 0; //jeżeli potrzbowalibyśmy to są zliczone wierzchołki, ale nigdzie nie przekazane
-        //iteracja po macierzy, zliczanie wierzchołków
-        while((line = br.readLine()) != null){
-            if(line.trim().isEmpty()) break; //pusta linia => koniec macierzy
+         InputStream is = new FileInputStream(txtFile);
+         BufferedReader br = new BufferedReader(new InputStreamReader(is));
+         String line;
+         int vertexCount = 0; //jeżeli potrzbowalibyśmy to są zliczone wierzchołki, ale nigdzie nie przekazane
+         //iteracja po macierzy, zliczanie wierzchołków
+         while((line = br.readLine()) != null){
+             if(line.trim().isEmpty()) break; //pusta linia => koniec macierzy
 
             //w każdej przetwarzanej linii trzeba zliczyć ilość wierzchołków
             vertexCount += (int) Arrays.stream(line.split("\\s+")).filter(x -> x.equals("1")).count();
-        }
+         }
 
-        int currentGroup = -1;
-        Group tempGroup = null;
-        while((line = br.readLine()) != null){
+         int currentGroup = -1;
+         Group tempGroup = null;
+         while((line = br.readLine()) != null){
             //jeżeli była linijka z grupą to tworzymy nową grupę
             if(line.trim().startsWith("grupa")) {
                 currentGroup = Integer.parseInt(line.split("\\s+")[1]);

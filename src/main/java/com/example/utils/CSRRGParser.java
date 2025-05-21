@@ -12,9 +12,9 @@ public class CSRRGParser {
     private ArrayList<Integer> adjacencyList4;
     private ArrayList<Integer> adjacencyIndices5;
 
-    public CSRRGParser(String fileName) {
+    public CSRRGParser(File csrrgFile) {
         try {
-            InputStream is = getClass().getClassLoader().getResourceAsStream(fileName);
+            InputStream is = new FileInputStream(csrrgFile);
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String line;
             int  lineNumber = 0;

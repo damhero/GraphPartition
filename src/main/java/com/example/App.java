@@ -6,20 +6,24 @@ import com.example.utils.CSRRGParser;
 import com.example.model.Group;
 import com.example.utils.TXTParser;
 
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import com.example.utils.ThemeManager;
 import com.formdev.flatlaf.FlatDarkLaf;
 
 public class App {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws URISyntaxException {
         ThemeManager.setupDefault();
         new AppFrame();
 
 
         //testy dla parserów
-        CSRRGParser csrrg = new CSRRGParser("graphs/graf.csrrg");
-        ArrayList<Group> parted = TXTParser.parse("graphs/graf_2.txt");
+        File csrrgFile = new File(App.class.getClassLoader().getResource("graphs/graf.csrrg").toURI());
+        CSRRGParser csrrg = new CSRRGParser(csrrgFile);
+        File txtFile = new File(App.class.getClassLoader().getResource("graphs/graf_2.txt").toURI());
+        ArrayList<Group> parted = TXTParser.parse(txtFile);
         Graph graph = new Graph(csrrg.getVerticesList2().toArray().length, csrrg.getAdjacencyList4(), csrrg.getAdjacencyIndices5());
 
         System.out.println("CSRRG loaded graph:");

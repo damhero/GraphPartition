@@ -25,7 +25,6 @@ public class PartitionAlg {
         this(graph, numParts, 10);
     }
 
-    //TODO: przemyśleć algorytm, żeby działanie było optymalne
     private void spectralPartition(Graph graph){
         int V = graph.getVertexCount();
         try {
