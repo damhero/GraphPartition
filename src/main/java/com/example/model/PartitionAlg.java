@@ -1,22 +1,27 @@
 package com.example.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.stream.IntStream;
 
 public class PartitionAlg {
     private ArrayList<Integer> verticiesPart; // Tablica przypisująca wierzchołek do podgrafu
-    private int numParts; //liczba części, podstawowo 2
+    private int numParts; // Liczba części, podstawowo 2
+    private int margin; // Margines błędu w procentach, podstawowo 10
 
-
-    //wywołanie z argumentami
+    // Wywołanie z argumentami
     public PartitionAlg(Graph graph, int numParts, int margin) {
         this.numParts = numParts;
+        this.margin = margin;
         this.verticiesPart = new ArrayList<Integer>();
+        for (int i = 0; i < graph.getVertexCount(); i++) {
+            this.verticiesPart.add(0); // Inicjalizacja tablicy zerami
+        }
         this.spectralPartition(graph);
     }
 
-    //przeciążanie dla wywołania bez argumentów
+    // Przeciążanie dla wywołania bez argumentów
     public PartitionAlg(Graph graph) {
         this(graph, 2, 10);
     }
@@ -25,126 +30,304 @@ public class PartitionAlg {
         this(graph, numParts, 10);
     }
 
-    private void spectralPartition(Graph graph){
+    private void spectralPartition(Graph graph) {
         int V = graph.getVertexCount();
         try {
-            double [] laplacian = PartitionAlg.computeLaplacian(graph);
-            double [] fielder = computeFielderVector(laplacian, V);
+            System.out.println("Rozpoczynam podział spektralny grafu o " + V + " wierzchołkach...");
+
+            double[] fielder = computeFiedlerVectorImplicit(graph, V);
+
+            // Przygotowanie struktury do sortowania wierzchołków
             ArrayList<IndexedValue> values = new ArrayList<IndexedValue>();
             for (int i = 0; i < V; i++) {
                 values.add(new IndexedValue(i, fielder[i]));
             }
 
-            //sortowanie wartości według wektora Fieldera
+            // Sortowanie wartości według wektora Fiedlera
             values.sort(IndexedValue::compareTo);
 
-            int base_size = V / numParts;
-            int remainder = V % numParts;
+            // Dla dwóch części, próbujemy znaleźć optymalny punkt podziału
+            if (numParts == 2) {
+                findOptimalBipartition(graph, values, V);
+            } else {
+                // Dla więcej niż dwóch części, używamy standardowego podziału
+                int baseSize = V / numParts;
+                int remainder = V % numParts;
 
-            int currentPosition = 0;
-            for(int p=0; p<numParts; p++){
-                int part_size = base_size + (p < remainder ? 1 : 0);
-                for(int i = 0 ; i < part_size; i++){
-                    this.verticiesPart.set(values.get(currentPosition + i).getIndex(), p);
+                int currentPosition = 0;
+                for (int p = 0; p < numParts; p++) {
+                    int partSize = baseSize + (p < remainder ? 1 : 0);
+                    for (int i = 0; i < partSize; i++) {
+                        this.verticiesPart.set(values.get(currentPosition + i).getIndex(), p);
+                    }
+                    currentPosition += partSize;
                 }
-                currentPosition += part_size;
             }
 
-        } catch (Exception e){
-            System.err.println("[!] Bład podczas podziału w SpectralPartition" + e);
+            this.evaluatePartition(graph, margin);
+
+        } catch (Exception e) {
+            System.err.println("[!] Błąd podczas podziału w SpectralPartition: " + e + ": " + e.getMessage());
+            e.printStackTrace();
             System.exit(1);
         }
-
     }
 
-    private static double [] computeFielderVector(double [] laplacian, int V){
-        double [] x = new double[V];
-        double [] y = new double[V];
+    // Metoda znajdująca optymalny punkt podziału dla dwóch części
+    private void findOptimalBipartition(Graph graph, ArrayList<IndexedValue> sortedValues, int V) {
+        double idealSize = V / 2.0;
+        double allowedDeviation = (margin / 100.0) * idealSize;
+        int minCutSize = (int)(idealSize - allowedDeviation);
+        int maxCutSize = (int)(idealSize + allowedDeviation);
 
-        //inicjalizacja losowymi
+        // Zapewniamy, że minCutSize i maxCutSize są w granicach [1, V-1]
+        minCutSize = Math.max(1, minCutSize);
+        maxCutSize = Math.min(V - 1, maxCutSize);
+
+        int bestCutPoint = V / 2; // Domyślnie dzielimy po prostu w połowie
+        int minCutEdges = Integer.MAX_VALUE;
+
+        System.out.println("Testuję punkty podziału od " + minCutSize + " do " + maxCutSize);
+
+        boolean[] tempPartition = new boolean[V];
+
+        // Sprawdzamy różne punkty podziału w ramach dozwolonego marginesu
+        for (int cutPoint = minCutSize; cutPoint <= maxCutSize; cutPoint++) {
+            for (int i = 0; i < V; i++) {
+                int vertexIndex = sortedValues.get(i).getIndex();
+                tempPartition[vertexIndex] = (i < cutPoint);
+            }
+
+            // Liczymy liczbę przeciętych krawędzi
+            int cutEdges = countCutEdges(graph, tempPartition);
+
+            // Jeśli znaleźliśmy lepszy podział, zapamiętujemy go
+            if (cutEdges < minCutEdges) {
+                minCutEdges = cutEdges;
+                bestCutPoint = cutPoint;
+            }
+
+            // Informacja o postępie co 10% testów
+            if ((cutPoint - minCutSize) % Math.max(1, (maxCutSize - minCutSize) / 10) == 0) {
+                System.out.println("Przetestowano punkt " + cutPoint + ", najlepszy cut: " + minCutEdges);
+            }
+        }
+
+        System.out.println("Znaleziono optymalny punkt: " + bestCutPoint + " z " + minCutEdges + " przecięciami");
+
+        // Zastosuj najlepszy znaleziony podział
         for (int i = 0; i < V; i++) {
-            Random rand = new Random();
+            int vertexIndex = sortedValues.get(i).getIndex();
+            if (i < bestCutPoint) {
+                this.verticiesPart.set(vertexIndex, 0);
+            } else {
+                this.verticiesPart.set(vertexIndex, 1);
+            }
+        }
+    }
+
+    //Funkcja obliczjąca ilość przeciętych krawędzi
+    private int countCutEdges(Graph graph, boolean[] partition) {
+        int V = graph.getVertexCount();
+        int cutEdges = 0;
+
+        for (int i = 0; i < V; i++) {
+            if (i >= graph.getAdjacencyIndices().size() - 1) break;
+
+            int startIdx = graph.getAdjacencyIndices().get(i);
+            int endIdx = graph.getAdjacencyIndices().get(i + 1);
+
+            // Sprawdzamy tylko sąsiadów tego wierzchołka
+            for (int j = startIdx; j < endIdx; j++) {
+                if (j >= graph.getAdjacencyList().size()) break;
+
+                int neighbor = graph.getAdjacencyList().get(j);
+                // Jeśli sąsiad w innej partycji, zwiększamy licznik
+                if (partition[i] != partition[neighbor]) {
+                    cutEdges++;
+                }
+            }
+        }
+
+        return cutEdges / 2; // Dzielimy przez 2, bo każda krawędź jest liczona dwukrotnie
+    }
+
+    //Obliczanie wektora Fiedlera bez tworzenia pełnej macierzy
+    private static double[] computeFiedlerVectorImplicit(Graph graph, int V) {
+        double[] x = new double[V];
+        double[] y = new double[V];
+        double[] prevX = new double[V];
+
+        // Inicjalizacja wektora losowymi wartościami
+        Random rand = new Random();
+        for (int i = 0; i < V; i++) {
             x[i] = rand.nextDouble() - 0.5;
         }
 
+        // Usunięcie składowej stałej (ortogonalizacja do pierwszego wektora własnego)
         double sum = 0;
-        for (int i = 0; i < V; i++) sum+=x[i];
-        double avg = sum/V;
+        for (int i = 0; i < V; i++) sum += x[i];
+        double avg = sum / V;
         for (int i = 0; i < V; i++) x[i] -= avg;
 
-        //iteracja potęgowa
-        int maxIter = 100;
-        double EPSILON = 1e-6;
+        // Normalizacja wektora startowego
+        double norm = norm(x, V);
+        for (int i = 0; i < V; i++) x[i] /= norm;
 
-        for(int iter = 0; iter < maxIter; iter++){
-            //mnożenie macierzy przez wektor
-            PartitionAlg.multiplyMatrixByVector(laplacian, x, y, V);
+        // Iteracja potęgowa z deflacją
+        int maxIter = 300; //można zwiększyć liczbę iteracji dla większej zbieżności lub zmniejszyć dla szybszego działania
+        double EPSILON = 1e-10;
+        double lambda = 0.0;
+
+        System.out.println("Rozpoczynam iteracje potęgowe...");
+        for (int iter = 0; iter < maxIter; iter++) {
+            // Zachowujemy poprzedni wektor x do sprawdzenia zbieżności
+            System.arraycopy(x, 0, prevX, 0, V);
+
+            //Mnożenie macierzy "w locie" bez jej tworzenia
+            implicitLaplacianMultiply(graph, x, y, V);
 
             // Usunięcie komponentu wzdłuż pierwszego wektora własnego (wektor stały)
             sum = 0;
-            for (int i = 0; i < V; i++) sum+=y[i];
-            avg = sum/V;
+            for (int i = 0; i < V; i++) sum += y[i];
+            avg = sum / V;
             for (int i = 0; i < V; i++) y[i] -= avg;
 
-            //normalizacja
-            double normValue = PartitionAlg.norm(y,V);
-            if(normValue < EPSILON) break;
+            // Obliczenie wartości własnej (przybliżenie)
+            double dotProduct = 0;
+            for (int i = 0; i < V; i++) {
+                dotProduct += x[i] * y[i];
+            }
+            lambda = dotProduct;
 
-            for(int i = 0; i < V; i++) x[i] = y[i] / normValue;
+            // Normalizacja
+            norm = norm(y, V);
+            if (norm < EPSILON) break;
 
+            for (int i = 0; i < V; i++) x[i] = y[i] / norm;
+
+            // Sprawdzenie zbieżności
+            double diff = 0;
+            for (int i = 0; i < V; i++) {
+                diff += Math.abs(x[i] - prevX[i]);
+            }
+
+            if (diff < EPSILON) {
+                System.out.println("Zbieżność osiągnięta po " + iter + " iteracjach. Lambda = " + lambda);
+                break;
+            }
+
+            // Informacja o postępie co 50 iteracji
+            if (iter % 50 == 0) {
+                System.out.println("Iteracja " + iter + ", różnica = " + String.format("%.2e", diff));
+            }
         }
 
         return x;
     }
 
+    //Mnożenie macierzy Laplace'a przez wektor bez tworzenia macierzy
+    private static void implicitLaplacianMultiply(Graph graph, double[] x, double[] result, int V) {
+        // Wyzeruj wektor wynikowy
+        Arrays.fill(result, 0.0);
 
-    //funkcja obliczająca normę (długośc wektora)
-    private static double norm(double [] vector, int V){
-        double sum = 0;
-        for(int i = 0; i < V; i++) sum+=vector[i]*vector[i];
+        // Dla każdego wierzchołka i
+        for (int i = 0; i < V; i++) {
+            // Oblicz stopień wierzchołka (ile ma sąsiadów)
+            int degree = 0;
+            if (i < graph.getAdjacencyIndices().size() - 1) {
+                int startIdx = graph.getAdjacencyIndices().get(i);
+                int endIdx = graph.getAdjacencyIndices().get(i + 1);
+                degree = endIdx - startIdx;
+            }
+
+            // Dodaj składnik z przekątnej: degree * x[i]
+            result[i] += degree * x[i];
+
+            // Odejmij składniki od sąsiadów: -1 * x[sąsiad]
+            if (i < graph.getAdjacencyIndices().size() - 1) {
+                int startIdx = graph.getAdjacencyIndices().get(i);
+                int endIdx = graph.getAdjacencyIndices().get(i + 1);
+
+                for (int j = startIdx; j < endIdx; j++) {
+                    if (j < graph.getAdjacencyList().size()) {
+                        int neighbor = graph.getAdjacencyList().get(j);
+                        result[i] -= x[neighbor]; // zamiast -1 w macierzy Laplace'a
+                    }
+                }
+            }
+        }
+    }
+
+    // Funkcja obliczająca normę (długość wektora)
+    private static double norm(double[] vector, int V) {
+        double sum = IntStream.range(0, V).parallel().mapToDouble(i -> vector[i] * vector[i]).sum();
         return Math.sqrt(sum);
     }
 
-
-    private static double [] computeLaplacian(Graph graph){
+    public void evaluatePartition(Graph graph, int margin) {
         int V = graph.getVertexCount();
-        double [] laplacian = new double[V*V];
-        int [] degree = new int[V];
+        int cutEdges = 0;
 
-        //zlicznie liczby krawędzi dla każdego wierzchołka
-        for(int i = 0; i < V; i++){
-            for(int j = graph.getAdjacencyIndices().get(i); j < graph.getAdjacencyIndices().get(i+1); j++){
-                degree[i]++;
-            }
+        // Inicjalizacja liczników wierzchołków w częściach
+        int[] partVerticesCounter = new int[numParts];
+        for (int p = 0; p < numParts; p++) {
+            partVerticesCounter[p] = 0;
         }
 
-        //Inicjalizacja macierzy zerami
-        for(int i = 0; i < V*V; i++){
-            for(int j = 0; j < V; j++){
-                laplacian[i] = 0;
+        // Liczenie wierzchołków w każdej części i przeciętych krawędzi
+        for (int i = 0; i < V; i++) {
+            int part = this.verticiesPart.get(i);
+            if (part < 0 || part >= this.numParts) {
+                System.err.println("[!] Błąd, wierzchołek przypisany do nieistniejącej części: " + i + " -> " + part);
+                System.exit(1);
             }
-        }
+            partVerticesCounter[part]++;
 
-        //Wypełnianie macierzy Laplace'a
-        for(int i = 0; i < V; i++){
-            laplacian[i*V + i] = degree[i]; //Wartości na przekątnej
-            for(int j = graph.getAdjacencyIndices().get(i); j < graph.getAdjacencyIndices().get(i+1); j++){
-                if(j == graph.getAdjacencyList().size()) break;
+            // Sprawdzenie przeciętych krawędzi
+            if (i >= graph.getAdjacencyIndices().size() - 1) continue;
+            int startIdx = graph.getAdjacencyIndices().get(i);
+            int endIdx = i + 1 < graph.getAdjacencyIndices().size() ?
+                    graph.getAdjacencyIndices().get(i + 1) : graph.getAdjacencyList().size();
+
+            for (int j = startIdx; j < endIdx; j++) {
+                if (j >= graph.getAdjacencyList().size()) break;
+
                 int neighbor = graph.getAdjacencyList().get(j);
-                laplacian[i*V + neighbor] = -1;
+                if (neighbor >= 0 && neighbor < V) {
+                    if (this.verticiesPart.get(i) != this.verticiesPart.get(neighbor)) {
+                        cutEdges++;
+                    }
+                }
             }
         }
-        return laplacian;
+        cutEdges /= 2; // Liczymy każdą przeciętą krawędź tylko raz
+
+        // Wyświetlanie ewaluacji
+        System.out.println("====Ewaluacja Podziału====");
+        System.out.println("Liczba przeciętych krawędzi: " + cutEdges);
+
+        double idealVertices = (double)V / numParts;
+        double allowedDeviation = (margin / 100.0) * idealVertices;
+
+        boolean ok = true;
+        for (int p = 0; p < numParts; p++) {
+            double percentage = (partVerticesCounter[p] / idealVertices) * 100;
+            System.out.printf("Część %d wierzchołków: %d (%.2f%%)\n", p, partVerticesCounter[p], percentage);
+
+            if (Math.abs(partVerticesCounter[p] - idealVertices) > allowedDeviation) {
+                ok = false;
+            }
+        }
+
+        if (ok) {
+            System.out.println("Podział spełnia margines");
+        } else {
+            System.out.println("Podział NIE spełnia marginesu");
+        }
     }
 
-    //wielowątkowe mnożenie macierzy przez wektor
-    private static void multiplyMatrixByVector(double [] matrix, double [] vector, double [] result, int V) {
-        IntStream.range(0, V).parallel().forEach(i -> {
-            double sum = 0;
-            for (int j = 0; j < V; j++) {
-                sum+= matrix[i*V+j]*vector[j];
-            }
-            result[i] = sum;
-        });
+    public int getMargin(){
+        return margin;
     }
 }
