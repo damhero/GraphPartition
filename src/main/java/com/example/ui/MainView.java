@@ -1,10 +1,14 @@
 package com.example.ui;
 
 import com.example.utils.LanguageManager;
+import com.example.ui.GraphPanel;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.*;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainView {
     private JPanel mainPanel;
@@ -17,8 +21,19 @@ public class MainView {
     private JLabel numOfDividesLabel;
     private JLabel marginLabel;
     private AppFrame appFrame;
+    private JPanel graphContainer;
+    private GraphPanel graphPanel;
 
     public MainView() {
+        graphPanel = new GraphPanel();
+        setupExampleGraph();
+
+        if (graphContainer != null) {
+            graphContainer.setLayout(new BorderLayout());
+            graphContainer.add(graphPanel, BorderLayout.CENTER);
+        }
+
+
         // Slider 1
         if (slider1 != null && marginValueLabel != null) {
             marginValueLabel.setText(String.valueOf(slider1.getValue()));
@@ -52,16 +67,47 @@ public class MainView {
             resetViewButton.addActionListener(e -> JOptionPane.showMessageDialog(mainPanel, "Zresetowano widok"));
         }
     }
-    public void applyLanguage() {
-        numOfDividesLabel.setText(LanguageManager.get("label.subgraphs"));
-        marginLabel.setText(LanguageManager.get("label.margin"));
-        resetViewButton.setText(LanguageManager.get("button.reset"));
-        divideButton.setText(LanguageManager.get("button.divide"));
+
+    // Przykładowa metoda do ustawienia danych grafu - usuń gdy będziesz mieć prawdziwe dane
+    private void setupExampleGraph() {
+        // Przykładowy graf: 0-1, 1-2, 2-0 (trójkąt)
+        List<Integer> adjacencyList = Arrays.asList(1, 2, 0, 2, 0, 1);
+        List<Integer> adjacencyIndices = Arrays.asList(0, 2, 4, 6);
+
+        graphPanel.setGraphData(adjacencyList, adjacencyIndices);
     }
+
+    // Metoda do ustawienia prawdziwych danych grafu
+    public void setGraphData(List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
+        if (graphPanel != null) {
+            graphPanel.setGraphData(adjacencyList, adjacencyIndices);
+        }
+    }
+
+    public void applyLanguage() {
+        if (numOfDividesLabel != null) {
+            numOfDividesLabel.setText(LanguageManager.get("label.subgraphs"));
+        }
+        if (marginLabel != null) {
+            marginLabel.setText(LanguageManager.get("label.margin"));
+        }
+        if (resetViewButton != null) {
+            resetViewButton.setText(LanguageManager.get("button.reset"));
+        }
+        if (divideButton != null) {
+            divideButton.setText(LanguageManager.get("button.divide"));
+        }
+    }
+
     public void setAppFrame(AppFrame frame) {
         this.appFrame = frame;
     }
+
     public JPanel getMainPanel() {
         return mainPanel;
+    }
+
+    public GraphPanel getGraphPanel() {
+        return graphPanel;
     }
 }

@@ -2,17 +2,23 @@ package com.example.ui;
 
 import com.example.utils.LanguageManager;
 import com.example.utils.ThemeManager;
+import com.example.utils.CSRRGParser;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.List;
 
 public class AppFrame extends JFrame {
     private final JPanel cards; // główny panel z CardLayout
     private final MainView mainFrame;
     private final PreferencesView prefsForm;
+    private CSRRGParser csrrgParser;
 
     public AppFrame() {
         setTitle(LanguageManager.get("app.title"));
@@ -162,13 +168,12 @@ public class AppFrame extends JFrame {
 
         return menuHelp;
     }
-
     private void openFile(String expectedExtension) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Wybierz plik *." + expectedExtension);
         fileChooser.setAcceptAllFileFilterUsed(false);
         fileChooser.setFileFilter(new FileNameExtensionFilter(
-                "."+expectedExtension, expectedExtension));
+                "." + expectedExtension, expectedExtension));
 
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
@@ -176,11 +181,77 @@ public class AppFrame extends JFrame {
             String fileName = selectedFile.getName();
 
             if (fileName.endsWith("." + expectedExtension)) {
-                // Wczytaj plik
-                JOptionPane.showMessageDialog(this,
-                        "Plik wczytany: " + selectedFile.getAbsolutePath(),
-                        "Sukces", JOptionPane.INFORMATION_MESSAGE);
-                // TODO: tutaj wczytaj zawartość plik
+                if (expectedExtension.equals("csrrg")) {
+                    try {
+                        csrrgParser = new CSRRGParser(selectedFile);
+                        JOptionPane.showMessageDialog(this,
+                                "Plik CSRRG wczytany: " + selectedFile.getAbsolutePath(),
+                                "Sukces", JOptionPane.INFORMATION_MESSAGE);
+
+                        mainFrame.getGraphPanel().setGraphData(
+                                csrrgParser.getAdjacencyList4(),
+                                csrrgParser.getAdjacencyIndices5()
+                        );
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(this,
+                                "Błąd podczas wczytywania pliku CSRRG: " + e.getMessage(),
+                                "Błąd", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else if (expectedExtension.equals("txt")) {
+                    try {
+                        var groups = com.example.utils.TXTParser.parse(selectedFile);
+
+                        // Oblicz maksymalny indeks wierzchołka
+                        int maxVertex = 0;
+                        for (var group : groups) {
+                            for (var pair : group.getAdjacencyPairs()) {
+                                maxVertex = Math.max(maxVertex, Math.max(pair.get(0), pair.get(1)));
+                            }
+                        }
+                        int nodeCount = maxVertex + 1;
+
+                        // Zainicjalizuj listę sąsiedztwa
+                        java.util.List<java.util.List<Integer>> neighborMap = new ArrayList<>();
+                        for (int i = 0; i < nodeCount; i++) {
+                            neighborMap.add(new ArrayList<>());
+                        }
+
+                        // Wypełnij sąsiadów
+                        for (var group : groups) {
+                            for (var pair : group.getAdjacencyPairs()) {
+                                int a = pair.get(0);
+                                int b = pair.get(1);
+                                neighborMap.get(a).add(b);
+                                neighborMap.get(b).add(a); // graf nieskierowany
+                            }
+                        }
+
+                        // Zamień na CSR (adjacencyList + adjacencyIndices)
+                        List<Integer> adjacencyList = new ArrayList<>();
+                        List<Integer> adjacencyIndices = new ArrayList<>();
+                        adjacencyIndices.add(0);
+
+                        for (var neighbors : neighborMap) {
+                            adjacencyList.addAll(neighbors);
+                            adjacencyIndices.add(adjacencyList.size());
+                        }
+
+                        // Wyślij do panelu
+                        mainFrame.getGraphPanel().setGraphData(adjacencyList, adjacencyIndices);
+
+                        JOptionPane.showMessageDialog(this,
+                                "Plik TXT wczytany: " + selectedFile.getAbsolutePath(),
+                                "Sukces", JOptionPane.INFORMATION_MESSAGE);
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(this,
+                                "Błąd podczas wczytywania pliku TXT: " + e.getMessage(),
+                                "Błąd", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Plik wczytany: " + selectedFile.getAbsolutePath(),
+                            "Sukces", JOptionPane.INFORMATION_MESSAGE);
+                }
             }
         }
     }
