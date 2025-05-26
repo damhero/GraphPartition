@@ -71,6 +71,7 @@ public class AppFrame extends JFrame {
     }
 
     // Nowa metoda do wykonywania podziału grafu
+    // Nowa metoda do wykonywania podziału grafu
     private void performGraphPartition() {
         // Sprawdź czy graf został wczytany
         if (!isGraphLoaded || currentAdjacencyList == null || currentAdjacencyIndices == null) {
@@ -96,6 +97,9 @@ public class AppFrame extends JFrame {
 
             PartitionAlg partition = new PartitionAlg(graph, numParts, margin);
 
+            // Po wykonaniu podziału, odśwież wizualizację
+            mainFrame.getGraphPanel().repaint();
+
             JOptionPane.showMessageDialog(this,
                     LanguageManager.get("partition.success"), // "Podział został wykonany."
                     LanguageManager.get("success.title"), // "Sukces"
@@ -110,7 +114,6 @@ public class AppFrame extends JFrame {
             ex.printStackTrace();
         }
     }
-
     public void handleThemeChange() {
         prefsForm.onThemeChanged(selected -> {
             String themeKey = selected.equals(LanguageManager.get("theme.option.dark")) ? "dark" : "light";
@@ -330,6 +333,7 @@ public class AppFrame extends JFrame {
                         JOptionPane.showMessageDialog(this,
                                 "Plik TXT wczytany: " + selectedFile.getAbsolutePath(),
                                 "Sukces", JOptionPane.INFORMATION_MESSAGE);
+                        mainFrame.getGraphPanel().repaint();
                     } catch (Exception e) {
                         this.isGraphLoaded = false;
                         JOptionPane.showMessageDialog(this,

@@ -1,9 +1,12 @@
-==== Ewaluacja Podziału ====
-Liczba przeciętych krawędzi: 93
-Część 0 wierzchołków: 18 (102,86%)
-Część 1 wierzchołków: 18 (102,86%)
-Część 2 wierzchołków: 18 (102,86%)
-Część 3 wierzchołków: 17 (97,14%)
-Część 4 wierzchołków: 17 (97,14%)
-Część 5 wierzchołków: 17 (97,14%)
+Liczba przeciętych krawędzi: 36862
+Część:  0 wierzchołków: : 3660 (100,00%)
+Część:  1 wierzchołków: : 3660 (100,00%)
+Część:  2 wierzchołków: : 3660 (100,00%)
+Część:  3 wierzchołków: : 3660 (100,00%)
+Część:  4 wierzchołków: : 3660 (100,00%)
+Część:  5 wierzchołków: : 3660 (100,00%)
+Część:  6 wierzchołków: : 3660 (100,00%)
+Część:  7 wierzchołków: : 3660 (100,00%)
+Część:  8 wierzchołków: : 3660 (100,00%)
+Część:  9 wierzchołków: : 3660 (100,00%)
 Podział spełnia margines

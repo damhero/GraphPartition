@@ -1,6 +1,7 @@
 package com.example.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Graph {
     private int vertexCount;
@@ -8,11 +9,12 @@ public class Graph {
     private ArrayList<Integer> adjacencyIndices;
 
     //konstruktor
-    public Graph(int vertexCount, ArrayList<Integer> adjacencyList, ArrayList<Integer> adjacencyIndices) {
+    public Graph(int vertexCount, List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
         this.vertexCount = vertexCount;
-        this.adjacencyList = adjacencyList;
-        this.adjacencyIndices = adjacencyIndices;
+        this.adjacencyList = new ArrayList<>(adjacencyList);
+        this.adjacencyIndices = new ArrayList<>(adjacencyIndices);
     }
+
 
     //gettery
 
