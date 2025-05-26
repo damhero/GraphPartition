@@ -26,6 +26,7 @@
             </constraints>
             <properties>
               <orientation value="0"/>
+              <value value="2"/>
             </properties>
           </component>
           <component id="478b5" class="javax.swing.JLabel" binding="numOfDividesLabel">
@@ -68,7 +69,9 @@
               </grid>
               <gridbag weightx="0.0" weighty="0.0"/>
             </constraints>
-            <properties/>
+            <properties>
+              <value value="10"/>
+            </properties>
           </component>
           <component id="2b424" class="javax.swing.JLabel" binding="marginValueLabel">
             <constraints>

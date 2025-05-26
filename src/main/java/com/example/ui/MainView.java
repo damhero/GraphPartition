@@ -59,12 +59,15 @@ public class MainView {
         }
 
         // Przykładowa obsługa przycisków
-        if (divideButton != null) {
-            divideButton.addActionListener(e -> JOptionPane.showMessageDialog(mainPanel, "Wykonano podział"));
-        }
 
         if (resetViewButton != null) {
-            resetViewButton.addActionListener(e -> JOptionPane.showMessageDialog(mainPanel, "Zresetowano widok"));
+            resetViewButton.addActionListener(e -> {
+                setupExampleGraph();  // przywróć przykładowy trójkąt
+                //Początkowe ustawienia sliderów
+                slider1.setValue(10);
+                slider2.setValue(2);
+                JOptionPane.showMessageDialog(mainPanel, LanguageManager.get("dialog.reset"));
+            });
         }
     }
 
@@ -109,5 +112,15 @@ public class MainView {
 
     public GraphPanel getGraphPanel() {
         return graphPanel;
+    }
+    public JButton getDivideButton() {
+        return divideButton;
+    }
+    public int getSelectedMargin() {
+        return slider1.getValue();
+    }
+
+    public int getSelectedSubGraphsCount() {
+        return slider2.getValue();
     }
 }

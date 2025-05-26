@@ -8,6 +8,7 @@ import com.example.model.Group;
 import com.example.utils.TXTParser;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
@@ -19,33 +20,37 @@ public class App {
         new AppFrame();
 
 
-        //testy dla Txt Parser
-        File txtFile = new File(App.class.getClassLoader().getResource("graphs/graf_2.txt").toURI());
-        System.out.println("TXT loaded parted graph:");
-        ArrayList<Group> parted = TXTParser.parse(txtFile);
-        for(Group group : parted) {
-            System.out.println(group.getGroupId());
-            ArrayList<ArrayList<Integer>> pairs = group.getAdjacencyPairs();
-            for(ArrayList<Integer> pair : pairs) {
-                System.out.println(pair.toString());
-            }
-        }
+//        //testy dla Txt Parser
+//        File txtFile = new File(App.class.getClassLoader().getResource("graphs/graf_2.txt").toURI());
+//        System.out.println("TXT loaded parted graph:");
+//        ArrayList<Group> parted = TXTParser.parse(txtFile);
+//        for(Group group : parted) {
+//            System.out.println(group.getGroupId());
+//            ArrayList<ArrayList<Integer>> pairs = group.getAdjacencyPairs();
+//            for(ArrayList<Integer> pair : pairs) {
+//                System.out.println(pair.toString());
+//            }
+//        }
 
         //testy dla CSRRG Parser
-        File csrrgFile = new File(App.class.getClassLoader().getResource("graphs/graf1.csrrg").toURI());
-        CSRRGParser csrrg = new CSRRGParser(csrrgFile);
-        Graph graph = new Graph(csrrg.getVerticesList2().toArray().length, csrrg.getAdjacencyList4(), csrrg.getAdjacencyIndices5());
-
-        System.out.println("CSRRG loaded graph:");
-
-        System.out.println(graph.getVertexCount());
-        System.out.println(graph.getAdjacencyList().toString());
-        System.out.println(graph.getAdjacencyIndices().toString());
-
+        File csrrgFile = new File(App.class.getClassLoader().getResource("graphs/graf.csrrg").toURI());
+        try {
+            CSRRGParser csrrg = new CSRRGParser(csrrgFile);
+            Graph graph = new Graph(csrrg.getVerticesList2().toArray().length, csrrg.getAdjacencyList4(), csrrg.getAdjacencyIndices5());
+            System.out.println(graph.getVertexCount());
+            System.out.println(graph.getAdjacencyList().toString());
+            System.out.println(graph.getAdjacencyIndices().toString());
+            System.out.println("CSRRG loaded graph:");
 
 
-        //testy dla podziału grafu graf.csrrg
-        PartitionAlg partition = new PartitionAlg(graph, 5, 10);
+            //testy dla podziału grafu graf.csrrg
+//            PartitionAlg partition = new PartitionAlg(graph, 5, 10);
+        } catch (IOException e) {
+            //TODO komunikat błędu
+            e.printStackTrace(); // albo pokazanie komunikatu użytkownikowi
+        }
+
+
 
 
 

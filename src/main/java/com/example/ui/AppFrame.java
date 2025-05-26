@@ -1,5 +1,7 @@
 package com.example.ui;
 
+import com.example.model.Graph;
+import com.example.model.PartitionAlg;
 import com.example.utils.LanguageManager;
 import com.example.utils.ThemeManager;
 import com.example.utils.CSRRGParser;
@@ -7,7 +9,10 @@ import com.example.utils.CSRRGParser;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +24,11 @@ public class AppFrame extends JFrame {
     private final MainView mainFrame;
     private final PreferencesView prefsForm;
     private CSRRGParser csrrgParser;
+
+    // Dodajemy zmienne do przechowywania danych grafu niezależnie od parsera
+    private ArrayList<Integer> currentAdjacencyList;
+    private ArrayList<Integer> currentAdjacencyIndices;
+    private boolean isGraphLoaded = false;
 
     public AppFrame() {
         setTitle(LanguageManager.get("app.title"));
@@ -36,6 +46,9 @@ public class AppFrame extends JFrame {
         // utwórz widoki
         mainFrame = new MainView();
         mainFrame.setAppFrame(this);
+
+        // Poprawiony ActionListener dla przycisku podziału
+        mainFrame.getDivideButton().addActionListener(e -> performGraphPartition());
 
         prefsForm = new PreferencesView();
         prefsForm.setAppFrame(this);
@@ -56,6 +69,46 @@ public class AppFrame extends JFrame {
         setVisible(true);
         setResolution();
     }
+
+    // Nowa metoda do wykonywania podziału grafu
+    private void performGraphPartition() {
+        // Sprawdź czy graf został wczytany
+        if (!isGraphLoaded || currentAdjacencyList == null || currentAdjacencyIndices == null) {
+            JOptionPane.showMessageDialog(this,
+                    LanguageManager.get("error.no.graph.loaded"), // "Najpierw wczytaj graf!"
+                    LanguageManager.get("error.title"), // "Błąd"
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            int margin = mainFrame.getSelectedMargin();
+            int numParts = mainFrame.getSelectedSubGraphsCount();
+
+            // Oblicz liczbę wierzchołków na podstawie adjacencyIndices
+            int nodeCount = currentAdjacencyIndices.size() - 1;
+
+            Graph graph = new Graph(
+                    nodeCount,
+                    currentAdjacencyList,
+                    currentAdjacencyIndices
+            );
+
+            PartitionAlg partition = new PartitionAlg(graph, numParts, margin);
+
+            JOptionPane.showMessageDialog(this,
+                    LanguageManager.get("partition.success"), // "Podział został wykonany."
+                    LanguageManager.get("success.title"), // "Sukces"
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Błąd podczas wykonywania podziału: " + ex.getMessage(),
+                    "Błąd", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
+        }
+    }
+
     public void handleThemeChange() {
         prefsForm.onThemeChanged(selected -> {
             String themeKey = selected.equals(LanguageManager.get("theme.option.dark")) ? "dark" : "light";
@@ -63,16 +116,14 @@ public class AppFrame extends JFrame {
         });
     }
 
-
     public void updateLanguage() {
         setTitle(LanguageManager.get("app.title"));
         setJMenuBar(createMenuBar());
 
         mainFrame.applyLanguage();
         prefsForm.applyLanguage();
-        // Dodaj tu inne widoki, jeśli masz
-        // np. helpView.applyLanguage();
     }
+
     private void setResolution(){
         prefsForm.getResolutionComboBox().addActionListener(e -> {
             String selected = (String) prefsForm.getResolutionComboBox().getSelectedItem();
@@ -130,13 +181,10 @@ public class AppFrame extends JFrame {
     private JMenu createEditMenu() {
         JMenu menuEdit = new JMenu(LanguageManager.get("menu.edit"));
 
-        JMenuItem itemVizSettings = new JMenuItem(LanguageManager.get("menu.viz.settings"));
         JMenuItem itemPreferences = new JMenuItem(LanguageManager.get("menu.preferences"));
 
-        itemVizSettings.addActionListener(e -> System.out.println("Ustawienia wizualizacji"));
         itemPreferences.addActionListener(e -> switchView("PREFS"));
 
-        menuEdit.add(itemVizSettings);
         menuEdit.add(itemPreferences);
 
         return menuEdit;
@@ -147,7 +195,27 @@ public class AppFrame extends JFrame {
 
         JMenuItem itemAnalyze = new JMenuItem(LanguageManager.get("menu.analyze"));
 
-        itemAnalyze.addActionListener(e -> System.out.println("Analiza podziału"));
+        itemAnalyze.addActionListener(e -> {
+            File evalFile = new File("output/partition_eval.txt");
+            if (!evalFile.exists()) {
+                JOptionPane.showMessageDialog(this, "Brak danych ewaluacji!", "Błąd", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new FileReader(evalFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+
+            JTextArea textArea = new JTextArea(sb.toString());
+            textArea.setEditable(false);
+            JOptionPane.showMessageDialog(this, new JScrollPane(textArea), "Ewaluacja podziału", JOptionPane.INFORMATION_MESSAGE);
+        });
 
         menuTools.add(itemAnalyze);
 
@@ -168,6 +236,7 @@ public class AppFrame extends JFrame {
 
         return menuHelp;
     }
+
     private void openFile(String expectedExtension) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Wybierz plik *." + expectedExtension);
@@ -183,16 +252,26 @@ public class AppFrame extends JFrame {
             if (fileName.endsWith("." + expectedExtension)) {
                 if (expectedExtension.equals("csrrg")) {
                     try {
-                        csrrgParser = new CSRRGParser(selectedFile);
+                        this.csrrgParser = new CSRRGParser(selectedFile);
+
+                        // Skopiuj dane do zmiennych klasy
+                        this.currentAdjacencyList = csrrgParser.getAdjacencyList4();
+                        this.currentAdjacencyIndices = csrrgParser.getAdjacencyIndices5();
+                        this.isGraphLoaded = true;
+
+                        System.out.println("AdjacencyList size: " + currentAdjacencyList.size());
+                        System.out.println("AdjacencyIndices: " + currentAdjacencyIndices);
+
                         JOptionPane.showMessageDialog(this,
                                 "Plik CSRRG wczytany: " + selectedFile.getAbsolutePath(),
                                 "Sukces", JOptionPane.INFORMATION_MESSAGE);
 
                         mainFrame.getGraphPanel().setGraphData(
-                                csrrgParser.getAdjacencyList4(),
-                                csrrgParser.getAdjacencyIndices5()
+                                currentAdjacencyList,
+                                currentAdjacencyIndices
                         );
                     } catch (Exception e) {
+                        this.isGraphLoaded = false;
                         JOptionPane.showMessageDialog(this,
                                 "Błąd podczas wczytywania pliku CSRRG: " + e.getMessage(),
                                 "Błąd", JOptionPane.ERROR_MESSAGE);
@@ -227,14 +306,19 @@ public class AppFrame extends JFrame {
                         }
 
                         // Zamień na CSR (adjacencyList + adjacencyIndices)
-                        List<Integer> adjacencyList = new ArrayList<>();
-                        List<Integer> adjacencyIndices = new ArrayList<>();
+                        ArrayList<Integer> adjacencyList = new ArrayList<>();
+                        ArrayList<Integer> adjacencyIndices = new ArrayList<>();
                         adjacencyIndices.add(0);
 
                         for (var neighbors : neighborMap) {
                             adjacencyList.addAll(neighbors);
                             adjacencyIndices.add(adjacencyList.size());
                         }
+
+                        // Zapisz dane do zmiennych klasy
+                        this.currentAdjacencyList = adjacencyList;
+                        this.currentAdjacencyIndices = adjacencyIndices;
+                        this.isGraphLoaded = true;
 
                         // Wyślij do panelu
                         mainFrame.getGraphPanel().setGraphData(adjacencyList, adjacencyIndices);
@@ -243,6 +327,7 @@ public class AppFrame extends JFrame {
                                 "Plik TXT wczytany: " + selectedFile.getAbsolutePath(),
                                 "Sukces", JOptionPane.INFORMATION_MESSAGE);
                     } catch (Exception e) {
+                        this.isGraphLoaded = false;
                         JOptionPane.showMessageDialog(this,
                                 "Błąd podczas wczytywania pliku TXT: " + e.getMessage(),
                                 "Błąd", JOptionPane.ERROR_MESSAGE);
@@ -283,5 +368,18 @@ public class AppFrame extends JFrame {
     private void switchView(String viewName) {
         CardLayout cl = (CardLayout) cards.getLayout();
         cl.show(cards, viewName);
+    }
+
+    // Metody pomocnicze dla dostępu do danych grafu
+    public boolean isGraphLoaded() {
+        return isGraphLoaded;
+    }
+
+    public List<Integer> getCurrentAdjacencyList() {
+        return currentAdjacencyList;
+    }
+
+    public List<Integer> getCurrentAdjacencyIndices() {
+        return currentAdjacencyIndices;
     }
 }

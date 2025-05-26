@@ -12,35 +12,38 @@ public class CSRRGParser {
     private ArrayList<Integer> adjacencyList4;
     private ArrayList<Integer> adjacencyIndices5;
 
-    public CSRRGParser(File csrrgFile) {
-        try {
-            InputStream is = new FileInputStream(csrrgFile);
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+    public CSRRGParser(File csrrgFile) throws IOException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(csrrgFile)))) {
             String line;
-            int  lineNumber = 0;
+            int lineNumber = 0;
             while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
                 ArrayList<Integer> parsedLine = parseLineToList(line);
 
-                switch (lineNumber)  {
+                switch (lineNumber) {
                     case 0 -> setMaxVertices1(parsedLine.getFirst());
                     case 1 -> setVerticesList2(parsedLine);
                     case 2 -> setVerticesPlacement3(parsedLine);
                     case 3 -> setAdjacencyList4(parsedLine);
                     case 4 -> setAdjacencyIndices5(parsedLine);
                     default -> System.err.println("Nieoczekiwana liczba linii w pliku: " + lineNumber);
-
                 }
                 lineNumber++;
             }
-            br.close();
-        }
-        catch (Exception e) {
-            //TODO: komunikaty na ekranie.
-            System.err.println("[!] Błąd podczas parsowania CSRRG" + e);
-            System.exit(1);
-        }
 
+            // Walidacja długości list
+            if (adjacencyIndices5 == null || adjacencyList4 == null) {
+                throw new IllegalStateException("Dane są niekompletne.");
+            }
+            if (adjacencyIndices5.getLast() > adjacencyList4.size()) {
+                throw new IllegalStateException("Ostatni indeks w adjacencyIndices przekracza rozmiar adjacencyList.");
+            }
 
+        } catch (Exception e) {
+            throw new IOException("Nieprawidłowy format pliku CSRRG: " + e.getMessage(), e);
+        }
     }
 
     //setterty

@@ -39,7 +39,7 @@ public class GraphPanel extends JPanel {
         int centerX = panelWidth / 2;
         int centerY = panelHeight / 2;
         int circleRadius = Math.min(panelWidth, panelHeight) / 3;
-
+        System.out.printf("Rysuję %d wierzchołków i %d krawędzi\n", nodeCount, adjacencyList.size());
         Point[] nodePositions = new Point[nodeCount];
         for (int i = 0; i < nodeCount; i++) {
             double angle = 2 * Math.PI * i / nodeCount;
@@ -76,5 +76,11 @@ public class GraphPanel extends JPanel {
             Point p = nodePositions[i];
             g2.fillOval(p.x - radius, p.y - radius, 2 * radius, 2 * radius);
         }
+    }
+    public void resetGraph() {
+        // Wyczyść dane grafu
+        this.adjacencyList = null;
+        this.adjacencyIndices = null;
+        repaint();
     }
 }

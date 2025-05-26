@@ -1,5 +1,9 @@
 package com.example.model;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -265,65 +269,73 @@ public class PartitionAlg {
         return Math.sqrt(sum);
     }
 
+
     public void evaluatePartition(Graph graph, int margin) {
         int V = graph.getVertexCount();
         int cutEdges = 0;
 
-        // Inicjalizacja liczników wierzchołków w częściach
         int[] partVerticesCounter = new int[numParts];
-        for (int p = 0; p < numParts; p++) {
-            partVerticesCounter[p] = 0;
-        }
+        for (int p = 0; p < numParts; p++) partVerticesCounter[p] = 0;
 
-        // Liczenie wierzchołków w każdej części i przeciętych krawędzi
         for (int i = 0; i < V; i++) {
             int part = this.verticiesPart.get(i);
-            if (part < 0 || part >= this.numParts) {
+            if (part < 0 || part >= numParts) {
                 System.err.println("[!] Błąd, wierzchołek przypisany do nieistniejącej części: " + i + " -> " + part);
                 System.exit(1);
             }
             partVerticesCounter[part]++;
 
-            // Sprawdzenie przeciętych krawędzi
             if (i >= graph.getAdjacencyIndices().size() - 1) continue;
             int startIdx = graph.getAdjacencyIndices().get(i);
-            int endIdx = i + 1 < graph.getAdjacencyIndices().size() ?
-                    graph.getAdjacencyIndices().get(i + 1) : graph.getAdjacencyList().size();
+            int endIdx = (i + 1 < graph.getAdjacencyIndices().size())
+                    ? graph.getAdjacencyIndices().get(i + 1)
+                    : graph.getAdjacencyList().size();
 
             for (int j = startIdx; j < endIdx; j++) {
-                if (j >= graph.getAdjacencyList().size()) break;
-
                 int neighbor = graph.getAdjacencyList().get(j);
-                if (neighbor >= 0 && neighbor < V) {
-                    if (this.verticiesPart.get(i) != this.verticiesPart.get(neighbor)) {
-                        cutEdges++;
-                    }
+                if (neighbor >= 0 && neighbor < V &&
+                        this.verticiesPart.get(i) != this.verticiesPart.get(neighbor)) {
+                    cutEdges++;
                 }
             }
         }
-        cutEdges /= 2; // Liczymy każdą przeciętą krawędź tylko raz
 
-        // Wyświetlanie ewaluacji
-        System.out.println("====Ewaluacja Podziału====");
-        System.out.println("Liczba przeciętych krawędzi: " + cutEdges);
+        cutEdges /= 2;
 
-        double idealVertices = (double)V / numParts;
-        double allowedDeviation = (margin / 100.0) * idealVertices;
-
-        boolean ok = true;
-        for (int p = 0; p < numParts; p++) {
-            double percentage = (partVerticesCounter[p] / idealVertices) * 100;
-            System.out.printf("Część %d wierzchołków: %d (%.2f%%)\n", p, partVerticesCounter[p], percentage);
-
-            if (Math.abs(partVerticesCounter[p] - idealVertices) > allowedDeviation) {
-                ok = false;
-            }
+        // === ZAPIS DO PLIKU ===
+        File outputDir = new File("output");
+        if (!outputDir.exists()) {
+            outputDir.mkdirs();
         }
 
-        if (ok) {
-            System.out.println("Podział spełnia margines");
-        } else {
-            System.out.println("Podział NIE spełnia marginesu");
+        File evalFile = new File(outputDir, "partition_eval.txt");
+        if (evalFile.exists()) {
+            //TODO Umieścić usuwanie pliku eval w innym miejscu w kodzie
+            evalFile.delete();
+        }
+
+        try (PrintWriter writer = new PrintWriter(new FileWriter(evalFile))) {
+            writer.println("==== Ewaluacja Podziału ====");
+            //TODO dodać angielska wersje i podpiąć language managera
+            writer.println("Liczba przeciętych krawędzi: " + cutEdges);
+
+            double idealVertices = (double) V / numParts;
+            double allowedDeviation = (margin / 100.0) * idealVertices;
+
+            boolean ok = true;
+            for (int p = 0; p < numParts; p++) {
+                double percentage = (partVerticesCounter[p] / idealVertices) * 100;
+                writer.printf("Część %d wierzchołków: %d (%.2f%%)%n", p, partVerticesCounter[p], percentage);
+
+                if (Math.abs(partVerticesCounter[p] - idealVertices) > allowedDeviation) {
+                    ok = false;
+                }
+            }
+
+            writer.println(ok ? "Podział spełnia margines" : "Podział NIE spełnia marginesu");
+
+        } catch (IOException e) {
+            System.err.println("[!] Błąd zapisu ewaluacji: " + e.getMessage());
         }
     }
 
