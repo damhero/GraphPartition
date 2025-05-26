@@ -101,6 +101,8 @@ public class AppFrame extends JFrame {
                     LanguageManager.get("success.title"), // "Sukces"
                     JOptionPane.INFORMATION_MESSAGE);
 
+            showPartitionResult();
+
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Błąd podczas wykonywania podziału: " + ex.getMessage(),
@@ -195,31 +197,33 @@ public class AppFrame extends JFrame {
 
         JMenuItem itemAnalyze = new JMenuItem(LanguageManager.get("menu.analyze"));
 
-        itemAnalyze.addActionListener(e -> {
-            File evalFile = new File("output/partition_eval.txt");
-            if (!evalFile.exists()) {
-                JOptionPane.showMessageDialog(this, "Brak danych ewaluacji!", "Błąd", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            StringBuilder sb = new StringBuilder();
-            try (BufferedReader reader = new BufferedReader(new FileReader(evalFile))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line).append("\n");
-                }
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-
-            JTextArea textArea = new JTextArea(sb.toString());
-            textArea.setEditable(false);
-            JOptionPane.showMessageDialog(this, new JScrollPane(textArea), "Ewaluacja podziału", JOptionPane.INFORMATION_MESSAGE);
-        });
+        itemAnalyze.addActionListener(e -> showPartitionResult());
 
         menuTools.add(itemAnalyze);
 
         return menuTools;
+    }
+
+    private void showPartitionResult(){
+        File evalFile = new File("output/partition_eval.txt");
+        if (!evalFile.exists()) {
+            JOptionPane.showMessageDialog(this, "Brak danych ewaluacji!", "Błąd", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new FileReader(evalFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        JTextArea textArea = new JTextArea(sb.toString());
+        textArea.setEditable(false);
+        JOptionPane.showMessageDialog(this, new JScrollPane(textArea), LanguageManager.get("analyze.title"), JOptionPane.INFORMATION_MESSAGE);
     }
 
     private JMenu createHelpMenu() {

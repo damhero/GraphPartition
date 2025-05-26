@@ -1,5 +1,7 @@
 package com.example.model;
 
+import com.example.utils.LanguageManager;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -310,14 +312,11 @@ public class PartitionAlg {
 
         File evalFile = new File(outputDir, "partition_eval.txt");
         if (evalFile.exists()) {
-            //TODO Umieścić usuwanie pliku eval w innym miejscu w kodzie
-            evalFile.delete();
+            evalFile.deleteOnExit();
         }
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(evalFile))) {
-            writer.println("==== Ewaluacja Podziału ====");
-            //TODO dodać angielska wersje i podpiąć language managera
-            writer.println("Liczba przeciętych krawędzi: " + cutEdges);
+            writer.println(LanguageManager.get("analyze.cutedges") + cutEdges); //"Liczba przeciętych krawędzi: "
 
             double idealVertices = (double) V / numParts;
             double allowedDeviation = (margin / 100.0) * idealVertices;
@@ -325,14 +324,14 @@ public class PartitionAlg {
             boolean ok = true;
             for (int p = 0; p < numParts; p++) {
                 double percentage = (partVerticesCounter[p] / idealVertices) * 100;
-                writer.printf("Część %d wierzchołków: %d (%.2f%%)%n", p, partVerticesCounter[p], percentage);
+                writer.printf("%s %d %s: %d (%.2f%%)%n",LanguageManager.get("analyze.part"), p, LanguageManager.get("analyze.vertices"), partVerticesCounter[p], percentage);
 
                 if (Math.abs(partVerticesCounter[p] - idealVertices) > allowedDeviation) {
                     ok = false;
                 }
             }
 
-            writer.println(ok ? "Podział spełnia margines" : "Podział NIE spełnia marginesu");
+            writer.println(ok ? LanguageManager.get("analyze.goodmargin") : LanguageManager.get("analyze.badmargin"));
 
         } catch (IOException e) {
             System.err.println("[!] Błąd zapisu ewaluacji: " + e.getMessage());

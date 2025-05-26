@@ -64,8 +64,7 @@ public class GraphPanel extends JPanel {
                
 
                 if (i < neighbor) { // uniknij podwójnego rysowania
-                    g2.drawLine(nodePositions[i].x, nodePositions[i].y,
-                            nodePositions[neighbor].x, nodePositions[neighbor].y);
+                    g2.drawLine(nodePositions[i].x, nodePositions[i].y, nodePositions[neighbor].x, nodePositions[neighbor].y);
                 }
             }
         }
