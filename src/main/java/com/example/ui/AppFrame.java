@@ -439,6 +439,63 @@ public class AppFrame extends JFrame {
                                 "Błąd podczas wczytywania pliku TXT: " + e.getMessage(),
                                 "Błąd", JOptionPane.ERROR_MESSAGE);
                     }
+                } else if (expectedExtension.equals("bin")) {
+                    try {
+                        var groups = com.example.utils.BINParser.parse(selectedFile);
+
+                        // Oblicz maksymalny indeks wierzchołka
+                        int maxVertex = 0;
+                        for (var group : groups) {
+                            for (var pair : group.getAdjacencyPairs()) {
+                                maxVertex = Math.max(maxVertex, Math.max(pair.get(0), pair.get(1)));
+                            }
+                        }
+                        int nodeCount = maxVertex + 1;
+
+                        // Zainicjalizuj listę sąsiedztwa
+                        java.util.List<java.util.List<Integer>> neighborMap = new ArrayList<>();
+                        for (int i = 0; i < nodeCount; i++) {
+                            neighborMap.add(new ArrayList<>());
+                        }
+
+                        // Wypełnij sąsiadów
+                        for (var group : groups) {
+                            for (var pair : group.getAdjacencyPairs()) {
+                                int a = pair.get(0);
+                                int b = pair.get(1);
+                                neighborMap.get(a).add(b);
+                                neighborMap.get(b).add(a); // graf nieskierowany
+                            }
+                        }
+
+                        // Zamień na CSR (adjacencyList + adjacencyIndices)
+                        ArrayList<Integer> adjacencyList = new ArrayList<>();
+                        ArrayList<Integer> adjacencyIndices = new ArrayList<>();
+                        adjacencyIndices.add(0);
+
+                        for (var neighbors : neighborMap) {
+                            adjacencyList.addAll(neighbors);
+                            adjacencyIndices.add(adjacencyList.size());
+                        }
+
+                        // Zapisz dane do zmiennych klasy
+                        this.currentAdjacencyList = adjacencyList;
+                        this.currentAdjacencyIndices = adjacencyIndices;
+                        this.isGraphLoaded = true;
+
+                        // Wyślij do panelu
+                        mainFrame.getGraphPanel().setGraphData(nodeCount, adjacencyList, adjacencyIndices);
+
+                        JOptionPane.showMessageDialog(this,
+                                "Plik BIN wczytany: " + selectedFile.getAbsolutePath(),
+                                "Sukces", JOptionPane.INFORMATION_MESSAGE);
+                        mainFrame.getGraphPanel().repaint();
+                    } catch (Exception e) {
+                        this.isGraphLoaded = false;
+                        JOptionPane.showMessageDialog(this,
+                                "Błąd podczas wczytywania pliku BIN: " + e.getMessage(),
+                                "Błąd", JOptionPane.ERROR_MESSAGE);
+                    }
                 } else {
                     JOptionPane.showMessageDialog(this,
                             "Plik wczytany: " + selectedFile.getAbsolutePath(),
@@ -476,6 +533,7 @@ public class AppFrame extends JFrame {
         CardLayout cl = (CardLayout) cards.getLayout();
         cl.show(cards, viewName);
     }
+
 
     // Metody pomocnicze dla dostępu do danych grafu
     public void setIsGraphLoaded(boolean bool) {
