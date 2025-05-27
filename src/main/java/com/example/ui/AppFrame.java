@@ -76,6 +76,8 @@ public class AppFrame extends JFrame {
     // Nowa metoda do wykonywania podziału grafu
     private void performGraphPartition() {
         // Sprawdź czy graf został wczytany
+        System.out.println("-----performGraphPartition-----");
+        System.out.println(isGraphLoaded);
         if (!isGraphLoaded || currentAdjacencyList == null || currentAdjacencyIndices == null) {
             System.out.println("-----perfrormGraphPartition-----");
             System.out.println(isGraphLoaded);
@@ -92,14 +94,8 @@ public class AppFrame extends JFrame {
             int margin = mainFrame.getSelectedMargin();
             int numParts = mainFrame.getSelectedSubGraphsCount();
 
-            // Oblicz liczbę wierzchołków na podstawie adjacencyIndices
-            int nodeCount = currentAdjacencyIndices.size() - 1;
 
-            Graph graph = new Graph(
-                    nodeCount,
-                    currentAdjacencyList,
-                    currentAdjacencyIndices
-            );
+            Graph graph = new Graph(currentVertexCount, currentAdjacencyList, currentAdjacencyIndices);
 
             PartitionAlg partition = new PartitionAlg(graph, numParts, margin);
 
@@ -431,7 +427,7 @@ public class AppFrame extends JFrame {
                         this.isGraphLoaded = true;
 
                         // Wyślij do panelu
-                        mainFrame.getGraphPanel().setGraphData(adjacencyList, adjacencyIndices);
+                        mainFrame.getGraphPanel().setGraphData(nodeCount, adjacencyList, adjacencyIndices);
 
                         JOptionPane.showMessageDialog(this,
                                 "Plik TXT wczytany: " + selectedFile.getAbsolutePath(),
@@ -482,8 +478,8 @@ public class AppFrame extends JFrame {
     }
 
     // Metody pomocnicze dla dostępu do danych grafu
-    public boolean isGraphLoaded() {
-        return isGraphLoaded;
+    public void setIsGraphLoaded(boolean bool) {
+        isGraphLoaded = bool;
     }
 
     public List<Integer> getCurrentAdjacencyList() {

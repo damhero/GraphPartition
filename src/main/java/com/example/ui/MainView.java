@@ -67,6 +67,7 @@ public class MainView {
                 slider1.setValue(10);
                 slider2.setValue(2);
                 JOptionPane.showMessageDialog(mainPanel, LanguageManager.get("dialog.reset"));
+                appFrame.setIsGraphLoaded(false);
             });
         }
     }
@@ -77,15 +78,16 @@ public class MainView {
         List<Integer> adjacencyList = Arrays.asList(1, 2, 0, 2, 0, 1);
         List<Integer> adjacencyIndices = Arrays.asList(0, 2, 4, 6);
 
-        graphPanel.setGraphData(adjacencyList, adjacencyIndices);
+        graphPanel.setGraphData(3, adjacencyList, adjacencyIndices, false);
     }
 
-    // Metoda do ustawienia prawdziwych danych grafu
-    public void setGraphData(List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
-        if (graphPanel != null) {
-            graphPanel.setGraphData(adjacencyList, adjacencyIndices);
-        }
-    }
+    // Meoda do ustawienia prawdziwych danych grafu
+    // Ta metoda ma no usages i to dobrze, bo to będzie źle działać, przeciążenie setGraphData i oblicznaie vertexCount jest błędnie zrobione
+//    public void setGraphData(List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
+//        if (graphPanel != null) {
+//            graphPanel.setGraphData(adjacencyList, adjacencyIndices);
+//        }
+//    }
 
     public void applyLanguage() {
         if (numOfDividesLabel != null) {

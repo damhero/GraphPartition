@@ -38,21 +38,19 @@ public class GraphPanel extends JPanel {
      * @param adjacencyList lista sąsiedztwa zawierająca połączenia między wierzchołkami
      * @param adjacencyIndices indeksy w liście sąsiedztwa dla każdego wierzchołka
      */
-    public void setGraphData(int vertexCount, List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
+    public void setGraphData(int vertexCount, List<Integer> adjacencyList, List<Integer> adjacencyIndices, boolean bool) {
         try {
             Graph tempGraph = new Graph(vertexCount, adjacencyList, adjacencyIndices);
             setGraph(tempGraph);
-            // Możesz również tutaj ustawić jakąś flagę w GraphPanel
-            this.graphLoaded = true;
+            this.graphLoaded = bool;
         } catch (Exception e) {
             System.out.println("Błąd podczas ustawiania danych grafu: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public void setGraphData(List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
-        int vertexCount = adjacencyIndices.size() - 1;
-        setGraphData(vertexCount, adjacencyList, adjacencyIndices);
+    public void setGraphData(int vertexCount, List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
+        this.setGraphData(vertexCount, adjacencyList, adjacencyIndices, true);
     }
 
 
@@ -67,7 +65,7 @@ public class GraphPanel extends JPanel {
         }
 
         this.graph = graph;
-        this.graphLoaded = (graph != null);  // Ustaw flagę na true, jeśli graf nie jest null
+//        this.graphLoaded = (graph != null);  // Ustaw flagę na true, jeśli graf nie jest null
 
         // Generuj layout od razu przy ustawianiu grafu
         if (!layoutGenerated) {

@@ -83,8 +83,8 @@ public class PartitionAlg {
     private void findOptimalBipartition(Graph graph, ArrayList<IndexedValue> sortedValues, int V) {
         double idealSize = V / 2.0;
         double allowedDeviation = (margin / 100.0) * idealSize;
-        int minCutSize = (int)(idealSize - allowedDeviation);
-        int maxCutSize = (int)(idealSize + allowedDeviation);
+        int minCutSize = (int)Math.ceil(idealSize - allowedDeviation);
+        int maxCutSize = (int)Math.floor(idealSize + allowedDeviation);
 
         // Zapewniamy, że minCutSize i maxCutSize są w granicach [1, V-1]
         minCutSize = Math.max(1, minCutSize);
