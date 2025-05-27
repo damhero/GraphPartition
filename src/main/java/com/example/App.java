@@ -33,7 +33,7 @@ public class App {
 //        }
 
         //testy dla CSRRG Parser
-        File csrrgFile = new File(App.class.getClassLoader().getResource("graphs/graf3.csrrg").toURI());
+        File csrrgFile = new File(App.class.getClassLoader().getResource("graphs/graf5.csrrg").toURI());
         try {
             CSRRGParser csrrg = new CSRRGParser(csrrgFile);
             Graph graph = new Graph(csrrg.getVerticesList2().toArray().length, csrrg.getAdjacencyList4(), csrrg.getAdjacencyIndices5());
@@ -43,8 +43,8 @@ public class App {
             System.out.println("CSRRG loaded graph:");
 
 
-            //testy dla podziału grafu graf.csrrg
-            PartitionAlg partition = new PartitionAlg(graph, 10, 7);
+//            //testy dla podziału grafu graf.csrrg
+//            PartitionAlg partition = new PartitionAlg(graph, 10, 7);
         } catch (IOException e) {
             //TODO komunikat błędu
             e.printStackTrace(); // albo pokazanie komunikatu użytkownikowi

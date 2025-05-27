@@ -3,6 +3,7 @@ package com.example.ui;
 import com.example.model.Graph;
 import com.example.model.PartitionAlg;
 import com.example.utils.LanguageManager;
+import com.example.utils.ManualLoader;
 import com.example.utils.ThemeManager;
 import com.example.utils.CSRRGParser;
 
@@ -24,6 +25,7 @@ public class AppFrame extends JFrame {
     private final MainView mainFrame;
     private final PreferencesView prefsForm;
     private CSRRGParser csrrgParser;
+    private int currentVertexCount;
 
     // Dodajemy zmienne do przechowywania danych grafu niezależnie od parsera
     private ArrayList<Integer> currentAdjacencyList;
@@ -75,6 +77,10 @@ public class AppFrame extends JFrame {
     private void performGraphPartition() {
         // Sprawdź czy graf został wczytany
         if (!isGraphLoaded || currentAdjacencyList == null || currentAdjacencyIndices == null) {
+            System.out.println("-----perfrormGraphPartition-----");
+            System.out.println(isGraphLoaded);
+            System.out.println(currentAdjacencyList);
+            System.out.println(currentAdjacencyIndices);
             JOptionPane.showMessageDialog(this,
                     LanguageManager.get("error.no.graph.loaded"), // "Najpierw wczytaj graf!"
                     LanguageManager.get("error.title"), // "Błąd"
@@ -235,13 +241,106 @@ public class AppFrame extends JFrame {
         JMenuItem itemManual = new JMenuItem(LanguageManager.get("menu.manual"));
         JMenuItem itemAbout = new JMenuItem(LanguageManager.get("menu.about"));
 
-        itemManual.addActionListener(e -> JOptionPane.showMessageDialog(this, "Instrukcja jeszcze niedostępna."));
+        itemManual.addActionListener(e -> showManual());
         itemAbout.addActionListener(e -> JOptionPane.showMessageDialog(this, LanguageManager.get("about.text")));
 
         menuHelp.add(itemManual);
         menuHelp.add(itemAbout);
 
         return menuHelp;
+    }
+
+    private void showManual() {
+        JDialog manualDialog = new JDialog(this, LanguageManager.get("menu.manual"), true);
+        manualDialog.setSize(800, 600);
+        manualDialog.setLocationRelativeTo(this);
+
+        // Pobierz aktualny język z LanguageManager
+        String currentLanguage = LanguageManager.getCurrentLocale().getLanguage();
+
+        // Wczytaj instrukcję obsługi z pliku
+        String markdownContent = ManualLoader.loadManual(currentLanguage);
+
+        // Konwertuj Markdown na HTML
+        String htmlContent = convertMarkdownToHtml(markdownContent);
+
+        // Utwórz komponent do wyświetlania treści
+        JTextPane textPane = new JTextPane();
+        textPane.setContentType("text/html");
+        textPane.setText(htmlContent);
+        textPane.setEditable(false);
+        textPane.setCaretPosition(0);
+
+        // Dodaj pasek przewijania
+        JScrollPane scrollPane = new JScrollPane(textPane);
+        manualDialog.add(scrollPane);
+
+        manualDialog.setVisible(true);
+    }
+
+    /**
+     * Konwertuje tekst Markdown na HTML
+     * @param markdown tekst w formacie Markdown
+     * @return sformatowany HTML
+     */
+    private String convertMarkdownToHtml(String markdown) {
+        // Podstawowy szablon HTML z CSS dla stylowania
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html><html><head><style>");
+        html.append("body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }");
+        html.append("h1 { color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 10px; }");
+        html.append("h2 { color: #3498db; margin-top: 20px; }");
+        html.append("h3 { color: #2980b9; }");
+        html.append("pre { background: #f8f8f8; border: 1px solid #ddd; padding: 10px; border-radius: 5px; overflow-x: auto; }");
+        html.append("code { background: #f8f8f8; padding: 2px 4px; }");
+        html.append("ul, ol { padding-left: 25px; }");
+        html.append("a { color: #3498db; text-decoration: none; }");
+        html.append("a:hover { text-decoration: underline; }");
+        html.append("</style></head><body>");
+
+        // Zamień nagłówki
+        String content = markdown;
+        content = content.replaceAll("(?m)^# (.*?)$", "<h1>$1</h1>");
+        content = content.replaceAll("(?m)^## (.*?)$", "<h2>$1</h2>");
+        content = content.replaceAll("(?m)^### (.*?)$", "<h3>$1</h3>");
+
+        // Zamień listy
+        content = content.replaceAll("(?m)^\\* (.*?)$", "<li>$1</li>");
+        content = content.replaceAll("(?m)^\\d+\\. (.*?)$", "<li>$1</li>");
+        content = content.replaceAll("(?s)<li>.*?</li>", "<ul>$0</ul>");
+        content = content.replaceAll("<ul>(<li>.*?</li>)</ul><ul>", "<ul>$1");
+        content = content.replaceAll("</li></ul><ul><li>", "</li><li>");
+
+        // Zamień pogrubienia i kursywy
+        content = content.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
+        content = content.replaceAll("\\*(.*?)\\*", "<em>$1</em>");
+
+        // Zamień odnośniki
+        content = content.replaceAll("\\[(.*?)\\]\\((.*?)\\)", "<a href=\"$2\">$1</a>");
+
+        // Zamień bloki kodu
+        content = content.replaceAll("(?s)```(.*?)```", "<pre><code>$1</code></pre>");
+
+        // Zamień linie kodu w tekście
+        content = content.replaceAll("`(.*?)`", "<code>$1</code>");
+
+        // Zamień poziome linie
+        content = content.replaceAll("(?m)^---$", "<hr>");
+
+        // Akapity
+        content = content.replaceAll("(?m)^([^<].*?)$", "<p>$1</p>");
+        content = content.replaceAll("<p>\\s*</p>", "");
+
+        // Popraw zagnieżdżone tagi
+        content = content.replaceAll("<p>(<h[1-3]>.*?</h[1-3]>)</p>", "$1");
+        content = content.replaceAll("<p>(<ul>.*?</ul>)</p>", "$1");
+        content = content.replaceAll("<p>(<pre>.*?</pre>)</p>", "$1");
+        content = content.replaceAll("<p>(<hr>)</p>", "$1");
+
+        html.append(content);
+        html.append("</body></html>");
+
+        return html.toString();
     }
 
     private void openFile(String expectedExtension) {
@@ -262,10 +361,12 @@ public class AppFrame extends JFrame {
                         this.csrrgParser = new CSRRGParser(selectedFile);
 
                         // Skopiuj dane do zmiennych klasy
+                        this.currentVertexCount = csrrgParser.getVerticesList2().size();
                         this.currentAdjacencyList = csrrgParser.getAdjacencyList4();
                         this.currentAdjacencyIndices = csrrgParser.getAdjacencyIndices5();
                         this.isGraphLoaded = true;
-
+                        System.out.println("-----App Frame-----");
+                        System.out.println("Vertex count: " + currentVertexCount);
                         System.out.println("AdjacencyList size: " + currentAdjacencyList.size());
                         System.out.println("AdjacencyIndices: " + currentAdjacencyIndices);
 
@@ -274,9 +375,11 @@ public class AppFrame extends JFrame {
                                 "Sukces", JOptionPane.INFORMATION_MESSAGE);
 
                         mainFrame.getGraphPanel().setGraphData(
+                                currentVertexCount,
                                 currentAdjacencyList,
                                 currentAdjacencyIndices
                         );
+                        System.out.println("Jestem po inicjalizacji " );
                     } catch (Exception e) {
                         this.isGraphLoaded = false;
                         JOptionPane.showMessageDialog(this,

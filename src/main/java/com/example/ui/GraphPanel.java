@@ -18,6 +18,7 @@ public class GraphPanel extends JPanel {
     private double zoomLevel = 1.0;
     private Point2D panOffset = new Point2D.Double(0, 0);
     private Point lastMousePos;
+    private boolean graphLoaded = false;
 
     // Kolory i rozmiary
     private static final Color VERTEX_COLOR = new Color(54, 128, 210); // SteelBlue
@@ -38,11 +39,15 @@ public class GraphPanel extends JPanel {
      * @param adjacencyIndices indeksy w liście sąsiedztwa dla każdego wierzchołka
      */
     public void setGraphData(int vertexCount, List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
-        // Tworzymy tymczasowy obiekt Graph na podstawie przekazanych danych
-        Graph tempGraph = new Graph(vertexCount, adjacencyList, adjacencyIndices);
-
-        // Wykorzystujemy istniejącą metodę setGraph
-        setGraph(tempGraph);
+        try {
+            Graph tempGraph = new Graph(vertexCount, adjacencyList, adjacencyIndices);
+            setGraph(tempGraph);
+            // Możesz również tutaj ustawić jakąś flagę w GraphPanel
+            this.graphLoaded = true;
+        } catch (Exception e) {
+            System.out.println("Błąd podczas ustawiania danych grafu: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void setGraphData(List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
@@ -62,6 +67,7 @@ public class GraphPanel extends JPanel {
         }
 
         this.graph = graph;
+        this.graphLoaded = (graph != null);  // Ustaw flagę na true, jeśli graf nie jest null
 
         // Generuj layout od razu przy ustawianiu grafu
         if (!layoutGenerated) {
@@ -69,34 +75,46 @@ public class GraphPanel extends JPanel {
             layoutGenerated = true;
         }
 
-        resetView();
         revalidate();
         repaint();
     }
 
+    // Dodaj również metodę sprawdzającą stan grafu
+    public boolean isGraphLoaded() {
+        return graphLoaded && graph != null;
+    }
+
+
     private void generateLayout() {
-        if (graph == null) return;
+        try {if (graph == null) return;
 
-        int width = getWidth() > 0 ? getWidth() : 800;
-        int height = getHeight() > 0 ? getHeight() : 600;
-        int vertexCount = graph.getVertexCount();
+            int width = getWidth() > 0 ? getWidth() : 800;
+            int height = getHeight() > 0 ? getHeight() : 600;
+            int vertexCount = graph.getVertexCount();
 
-        // Dla dużych grafów używamy prostokątnego układu zamiast koła
-        if (vertexCount > 1000) {
-            generateRectangularLayout(width, height, vertexCount);
-        } else {
-            generateCircularLayout(width, height, vertexCount);
+            // Dla dużych grafów używamy prostokątnego układu zamiast koła
+            if (vertexCount > 1000) {
+                generateRectangularLayout(width, height, vertexCount);
+            } else {
+                generateCircularLayout(width, height, vertexCount);
+            }
+
+            // Algorytm force-directed z parametrami dostosowanymi do rozmiaru grafu
+            System.out.println("Przed apply force");
+            applyForceDirectedLayout(width, height, vertexCount);
+            System.out.println("Po apply force");
+
+            // Końcowe rozproszenie dla lepszej czytelności
+            if (vertexCount > 5000) {
+                applyAdditionalSpacing(width, height, vertexCount);
+            }
+
+            centerGraph(width, height);} catch (Exception e) {
+            System.out.println("Błąd podczas generowania layoutu: " + e.getMessage());
+            e.printStackTrace();
+
         }
 
-        // Algorytm force-directed z parametrami dostosowanymi do rozmiaru grafu
-        applyForceDirectedLayout(width, height, vertexCount);
-
-        // Końcowe rozproszenie dla lepszej czytelności
-        if (vertexCount > 5000) {
-            applyAdditionalSpacing(width, height, vertexCount);
-        }
-
-        centerGraph(width, height);
     }
 
     private void generateRectangularLayout(int width, int height, int vertexCount) {
@@ -203,8 +221,9 @@ public class GraphPanel extends JPanel {
             // Siły przyciągania tylko dla krawędzi
             ArrayList<Integer> adjacencyList = graph.getAdjacencyList();
             ArrayList<Integer> adjacencyIndices = graph.getAdjacencyIndices();
-
+            int adjIndicesSize = adjacencyIndices.size();
             for (int i = 0; i < vertexCount; i++) {
+                if (i >= adjIndicesSize) break;
                 Point2D v1 = vertexPositions.get(i);
 
                 // Pobierz indeksy początku i końca listy sąsiedztwa dla wierzchołka i
@@ -411,10 +430,16 @@ public class GraphPanel extends JPanel {
         ArrayList<Integer> adjacencyList = graph.getAdjacencyList();
         ArrayList<Integer> adjacencyIndices = graph.getAdjacencyIndices();
         int vertexCount = graph.getVertexCount();
+        int indicesSize = adjacencyIndices.size();
+
+        vertexCount = Math.min(vertexCount, indicesSize);
 
         for (int i = 0; i < vertexCount; i++) {
             Point2D p1 = vertexPositions.get(i);
             if (p1 == null) continue;
+
+            // Sprawdź czy indeks jest w granicach listy adjacencyIndices
+            if (i >= indicesSize) break; // przerwij pętlę, jeśli wykraczamy poza dostępne indeksy
 
             // Pobierz indeksy początku i końca listy sąsiedztwa dla wierzchołka i
             int startIdx = (i > 0) ? adjacencyIndices.get(i - 1) : 0;
@@ -422,7 +447,11 @@ public class GraphPanel extends JPanel {
 
             // Iteruj przez wszystkich sąsiadów wierzchołka i
             for (int j = startIdx; j < endIdx; j++) {
+                if (j >= adjacencyList.size()) break; // dodatkowe zabezpieczenie
+
                 int neighbor = adjacencyList.get(j);
+                if (neighbor >= vertexPositions.size()) continue; // zabezpieczenie przed błędem indeksu
+
                 Point2D p2 = vertexPositions.get(neighbor);
                 if (p2 != null) {
                     g2d.drawLine(
