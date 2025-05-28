@@ -4,6 +4,7 @@ import com.example.model.Graph;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+import java.awt.BasicStroke;
 import java.util.*;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -19,6 +20,12 @@ public class GraphPanel extends JPanel {
     private Point2D panOffset = new Point2D.Double(0, 0);
     private Point lastMousePos;
     private boolean graphLoaded = false;
+    // Mapowanie grup podziału wierzchołków
+    private Map<Integer, Integer> vertexGroups = new HashMap<>();
+    private boolean partitionApplied = false;
+    private List<Color> groupColors = new ArrayList<>();
+
+
 
     // Kolory i rozmiary
     private static final Color VERTEX_COLOR = new Color(54, 128, 210); // SteelBlue
@@ -77,6 +84,61 @@ public class GraphPanel extends JPanel {
         repaint();
     }
 
+    /**
+     * Zastosowuje wyniki podziału grafu do wizualizacji
+     *
+     * @param partitionGroups mapa przypisująca wierzchołki do grup (klucz: indeks wierzchołka, wartość: grupa)
+     * @param groupCount liczba grup w podziale
+     */
+    public void applyPartition(Map<Integer, Integer> partitionGroups, int groupCount) {
+        // Wyczyść poprzednie dane podziału
+        this.vertexGroups.clear();
+
+        // Zastosuj nowy podział
+        if (partitionGroups != null) {
+            this.vertexGroups.putAll(partitionGroups);
+            this.partitionApplied = true;
+        } else {
+            this.partitionApplied = false;
+        }
+
+        // Generowanie kolorów dla grup
+        generateGroupColors(groupCount);
+
+        // Odświeżenie widoku
+        repaint();
+    }
+    /**
+     * Generuje listę kolorów dla poszczególnych grup podziału
+     *
+     * @param groupCount liczba grup w podziale
+     */
+    private void generateGroupColors(int groupCount) {
+        groupColors.clear();
+
+        // Generowanie różnych kolorów dla grup
+        for (int i = 0; i < groupCount; i++) {
+            // Użycie HSB dla równomiernego rozłożenia kolorów
+            float hue = (float) i / groupCount;
+            Color color = Color.getHSBColor(hue, 0.7f, 0.9f);
+            groupColors.add(color);
+        }
+    }
+
+    /**
+     * Zwraca kolor dla określonej grupy
+     *
+     * @param groupId identyfikator grupy
+     * @return kolor przypisany do grupy
+     */
+    public Color getGroupColor(int groupId) {
+        if (groupId >= 0 && groupId < groupColors.size()) {
+            return groupColors.get(groupId);
+        }
+        return VERTEX_COLOR; // domyślny kolor wierzchołka
+    }
+
+
     // Dodaj również metodę sprawdzającą stan grafu
     public boolean isGraphLoaded() {
         return graphLoaded && graph != null;
@@ -98,9 +160,7 @@ public class GraphPanel extends JPanel {
             }
 
             // Algorytm force-directed z parametrami dostosowanymi do rozmiaru grafu
-            System.out.println("Przed apply force");
             applyForceDirectedLayout(width, height, vertexCount);
-            System.out.println("Po apply force");
 
             // Końcowe rozproszenie dla lepszej czytelności
             if (vertexCount > 5000) {
@@ -344,9 +404,13 @@ public class GraphPanel extends JPanel {
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+        // Zapisz oryginalną transformację
+        AffineTransform originalTransform = g2d.getTransform();
+
+        // Zastosuj transformację (przesunięcie i przybliżenie)
         AffineTransform transform = new AffineTransform();
-        transform.scale(zoomLevel, zoomLevel);
         transform.translate(panOffset.getX(), panOffset.getY());
+        transform.scale(zoomLevel, zoomLevel);
         g2d.transform(transform);
 
         // Dla bardzo dużych grafów rysuj mniej krawędzi przy małym zoomie
@@ -357,8 +421,10 @@ public class GraphPanel extends JPanel {
         }
 
         drawVertices(g2d);
-    }
 
+        // Przywróć oryginalną transformację
+        g2d.setTransform(originalTransform);
+    }
     public Map<Integer, Point2D> getVertexPositions() {
         return new HashMap<>(vertexPositions);
     }
@@ -395,8 +461,13 @@ public class GraphPanel extends JPanel {
             public void mouseDragged(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e) && lastMousePos != null) {
                     Point current = e.getPoint();
-                    double dx = (current.x - lastMousePos.x) / zoomLevel;
-                    double dy = (current.y - lastMousePos.y) / zoomLevel;
+                    // Oblicz przesunięcie w przestrzeni ekranu
+                    double dx = current.x - lastMousePos.x;
+                    double dy = current.y - lastMousePos.y;
+
+                    // Przekształć przesunięcie do przestrzeni grafu (uwzględnij skalę)
+                    dx /= zoomLevel;
+                    dy /= zoomLevel;
 
                     panOffset.setLocation(
                             panOffset.getX() + dx,
@@ -410,13 +481,25 @@ public class GraphPanel extends JPanel {
         });
 
         addMouseWheelListener(e -> {
+            // Zapisz pozycję kursora przed przybliżeniem
+            Point mousePos = e.getPoint();
+            double mouseX = mousePos.x / zoomLevel - panOffset.getX();
+            double mouseY = mousePos.y / zoomLevel - panOffset.getY();
+
+            // Zmień poziom przybliżenia
             double zoomFactor = e.getWheelRotation() < 0 ? 1.1 : 0.9;
             zoomLevel *= zoomFactor;
-            zoomLevel = Math.max(0.05, Math.min(zoomLevel, 10.0)); // Ogranicz zoom
+            zoomLevel = Math.max(0.05, Math.min(zoomLevel, 10.0));
+
+            // Dostosuj przesunięcie, aby utrzymać kursor w tym samym miejscu grafu
+            panOffset.setLocation(
+                    mousePos.x / zoomLevel - mouseX,
+                    mousePos.y / zoomLevel - mouseY
+            );
+
             repaint();
         });
     }
-
     public void resetView() {
         zoomLevel = 1.0;
         panOffset.setLocation(0, 0);
@@ -424,46 +507,56 @@ public class GraphPanel extends JPanel {
     }
 
     private void drawEdges(Graphics2D g2d) {
-        g2d.setColor(EDGE_COLOR);
-        ArrayList<Integer> adjacencyList = graph.getAdjacencyList();
-        ArrayList<Integer> adjacencyIndices = graph.getAdjacencyIndices();
-        int vertexCount = graph.getVertexCount();
-        int indicesSize = adjacencyIndices.size();
+        if (graph == null || vertexPositions.isEmpty()) return;
 
-        vertexCount = Math.min(vertexCount, indicesSize);
+        float strokeWidth = Math.max(0.5f, 1.0f);
+        g2d.setStroke(new BasicStroke(strokeWidth));
 
-        for (int i = 0; i < vertexCount; i++) {
+        List<Integer>[] neighbors = graph.getNeighbors();
+        if (neighbors == null) return;
+
+        // Rysowanie krawędzi
+        for (int i = 0; i < neighbors.length; i++) {
+            if (neighbors[i] == null) continue;
+
             Point2D p1 = vertexPositions.get(i);
             if (p1 == null) continue;
 
-            // Sprawdź czy indeks jest w granicach listy adjacencyIndices
-            if (i >= indicesSize) break; // przerwij pętlę, jeśli wykraczamy poza dostępne indeksy
+            double x1 = p1.getX();
+            double y1 = p1.getY();
 
-            // Pobierz indeksy początku i końca listy sąsiedztwa dla wierzchołka i
-            int startIdx = (i > 0) ? adjacencyIndices.get(i - 1) : 0;
-            int endIdx = adjacencyIndices.get(i);
+            for (int neighbor : neighbors[i]) {
+                // Rysuj każdą krawędź tylko raz
+                if (neighbor > i) {
+                    Point2D p2 = vertexPositions.get(neighbor);
+                    if (p2 == null) continue;
 
-            // Iteruj przez wszystkich sąsiadów wierzchołka i
-            for (int j = startIdx; j < endIdx; j++) {
-                if (j >= adjacencyList.size()) break; // dodatkowe zabezpieczenie
+                    double x2 = p2.getX();
+                    double y2 = p2.getY();
 
-                int neighbor = adjacencyList.get(j);
-                if (neighbor >= vertexPositions.size()) continue; // zabezpieczenie przed błędem indeksu
+                    // Ustawienie koloru krawędzi
+                    if (partitionApplied && vertexGroups.containsKey(i) && vertexGroups.containsKey(neighbor)) {
+                        int group1 = vertexGroups.get(i);
+                        int group2 = vertexGroups.get(neighbor);
 
-                Point2D p2 = vertexPositions.get(neighbor);
-                if (p2 != null) {
-                    g2d.drawLine(
-                            (int) p1.getX(), (int) p1.getY(),
-                            (int) p2.getX(), (int) p2.getY()
-                    );
+                        if (group1 == group2) {
+                            g2d.setColor(getGroupColor(group1).darker());
+                        } else {
+                            g2d.setColor(Color.RED);
+                        }
+                    } else {
+                        g2d.setColor(EDGE_COLOR);
+                    }
+
+                    g2d.drawLine((int)x1, (int)y1, (int)x2, (int)y2);
                 }
             }
         }
     }
 
+
     private void drawEdgesSimplified(Graphics2D g2d) {
-        // Dla dużych grafów przy małym zoomie rysuj co n-tą krawędź
-        g2d.setColor(new Color(200, 200, 200, 128)); // Półprzezroczyste krawędzie
+        g2d.setColor(new Color(200, 200, 200, 128));
         ArrayList<Integer> adjacencyList = graph.getAdjacencyList();
         ArrayList<Integer> adjacencyIndices = graph.getAdjacencyIndices();
         int vertexCount = graph.getVertexCount();
@@ -473,11 +566,9 @@ public class GraphPanel extends JPanel {
             Point2D p1 = vertexPositions.get(i);
             if (p1 == null) continue;
 
-            // Pobierz indeksy początku i końca listy sąsiedztwa dla wierzchołka i
             int startIdx = (i > 0) ? adjacencyIndices.get(i - 1) : 0;
             int endIdx = adjacencyIndices.get(i);
 
-            // Iteruj przez wszystkich sąsiadów wierzchołka i z przeskokiem
             for (int j = startIdx; j < endIdx; j += skipFactor) {
                 if (j < adjacencyList.size()) {
                     int neighbor = adjacencyList.get(j);
@@ -493,48 +584,68 @@ public class GraphPanel extends JPanel {
                 }
             }
         }
+    }    /**
+     * Resetuje podział grafu i przywraca domyślną wizualizację
+     */
+    public void resetPartition() {
+        partitionApplied = false;
+        vertexGroups.clear();
+        repaint();
     }
 
+    /**
+     * Zwraca informację czy graf ma zastosowany podział
+     *
+     * @return true jeśli podział został zastosowany, false w przeciwnym razie
+     */
+    public boolean isPartitionApplied() {
+        return partitionApplied;
+    }
+
+    /**
+     * Eksportuje dane podziału do formatu umożliwiającego dalsze przetwarzanie
+     *
+     * @return mapa wierzchołków i ich grup
+     */
+    public Map<Integer, Integer> getPartitionData() {
+        return new HashMap<>(vertexGroups);
+    }
     private void drawVertices(Graphics2D g2d) {
-        int vertexSize = (int) (BASE_VERTEX_SIZE / Math.sqrt(zoomLevel));
-        vertexSize = Math.max(1, Math.min(vertexSize, 15)); // Ogranicz rozmiar
+        if (graph == null || vertexPositions.isEmpty()) return;
 
-        // Dla bardzo dużych grafów przy małym zoomie rysuj mniejsze wierzchołki
-        if (graph.getVertexCount() > 20000 && zoomLevel < 0.5) {
-            vertexSize = Math.max(1, vertexSize / 2);
-        }
+        int vertexCount = graph.getVertexCount();
+        int vertexSize = (int) (BASE_VERTEX_SIZE);
 
-        g2d.setColor(VERTEX_COLOR);
-
-        // Rysuj wierzchołki z numerami jeśli zoom jest wystarczający
-        boolean showNumbers = zoomLevel > 0.8 && graph.getVertexCount() < 1000;
-
-        if (showNumbers) {
-            g2d.setFont(g2d.getFont().deriveFont((float)(8 / Math.sqrt(zoomLevel))));
-        }
-
-        for (Map.Entry<Integer, Point2D> entry : vertexPositions.entrySet()) {
-            Point2D pos = entry.getValue();
-            Integer vertexId = entry.getKey();
-
+        for (int i = 0; i < vertexCount; i++) {
+            Point2D pos = vertexPositions.get(i);
             if (pos != null) {
-                // Rysuj wierzchołek
-                g2d.fillOval(
-                        (int) (pos.getX() - vertexSize/2),
-                        (int) (pos.getY() - vertexSize/2),
-                        vertexSize, vertexSize
-                );
+                int x = (int) pos.getX();
+                int y = (int) pos.getY();
 
-                // Rysuj numer wierzchołka jeśli zoom pozwala
-                if (showNumbers) {
-                    g2d.setColor(Color.BLACK);
-                    String label = String.valueOf(vertexId);
-                    g2d.drawString(label,
-                            (int) (pos.getX() + vertexSize/2 + 2),
-                            (int) (pos.getY() + vertexSize/2));
+                // Wybór koloru w zależności od zastosowanego podziału
+                if (partitionApplied && vertexGroups.containsKey(i)) {
+                    int groupId = vertexGroups.get(i);
+                    g2d.setColor(getGroupColor(groupId));
+                } else {
                     g2d.setColor(VERTEX_COLOR);
                 }
+
+                g2d.fillOval(x - vertexSize, y - vertexSize, 2 * vertexSize, 2 * vertexSize);
+
+                // Rysowanie obramowania wierzchołka
+                g2d.setColor(Color.BLACK);
+                g2d.drawOval(x - vertexSize, y - vertexSize, 2 * vertexSize, 2 * vertexSize);
             }
         }
     }
+    /**
+     * Eksportuje kolory grup do wykorzystania w innych komponentach
+     *
+     * @return lista kolorów przypisanych do grup
+     */
+    public List<Color> getGroupColors() {
+        return new ArrayList<>(groupColors);
+    }
+
+
 }

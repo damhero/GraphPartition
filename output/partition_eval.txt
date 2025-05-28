@@ -1,0 +1,4 @@
+Liczba przeciętych krawędzi: 56
+Część:  0 wierzchołków: : 48 (91,43%)
+Część:  1 wierzchołków: : 57 (108,57%)
+Podział spełnia margines

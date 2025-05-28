@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.List;
 
@@ -72,17 +73,9 @@ public class AppFrame extends JFrame {
         setResolution();
     }
 
-    // Nowa metoda do wykonywania podziału grafu
-    // Nowa metoda do wykonywania podziału grafu
     private void performGraphPartition() {
         // Sprawdź czy graf został wczytany
-        System.out.println("-----performGraphPartition-----");
-        System.out.println(isGraphLoaded);
         if (!isGraphLoaded || currentAdjacencyList == null || currentAdjacencyIndices == null) {
-            System.out.println("-----perfrormGraphPartition-----");
-            System.out.println(isGraphLoaded);
-            System.out.println(currentAdjacencyList);
-            System.out.println(currentAdjacencyIndices);
             JOptionPane.showMessageDialog(this,
                     LanguageManager.get("error.no.graph.loaded"), // "Najpierw wczytaj graf!"
                     LanguageManager.get("error.title"), // "Błąd"
@@ -94,12 +87,27 @@ public class AppFrame extends JFrame {
             int margin = mainFrame.getSelectedMargin();
             int numParts = mainFrame.getSelectedSubGraphsCount();
 
-
             Graph graph = new Graph(currentVertexCount, currentAdjacencyList, currentAdjacencyIndices);
 
             PartitionAlg partition = new PartitionAlg(graph, numParts, margin);
 
-            // Po wykonaniu podziału, odśwież wizualizację
+            // Pobierz wyniki podziału z obiektu partition
+            // Zakładam, że PartitionAlg ma metodę getPartitions() lub podobną,
+            // która zwraca informacje o podziale grafu
+            Map<Integer, Integer> partitionGroups = partition.getPartitionGroups();
+
+            // Określenie liczby grup w podziale
+            int groupCount = 0;
+            for (int groupId : partitionGroups.values()) {
+                groupCount = Math.max(groupCount, groupId + 1); // +1 bo numeracja od 0
+            }
+
+
+            // Zastosuj podział do panelu grafu używając metody applyPartition
+            mainFrame.getGraphPanel().applyPartition(partitionGroups, groupCount);
+
+
+            // Odśwież panel grafu
             mainFrame.getGraphPanel().repaint();
 
             JOptionPane.showMessageDialog(this,
@@ -107,6 +115,7 @@ public class AppFrame extends JFrame {
                     LanguageManager.get("success.title"), // "Sukces"
                     JOptionPane.INFORMATION_MESSAGE);
 
+            // Zamiast pokazywać nowy widok, pozostań na obecnym i pokaż dialog z wynikami
             showPartitionResult();
 
         } catch (Exception ex) {
@@ -116,6 +125,7 @@ public class AppFrame extends JFrame {
             ex.printStackTrace();
         }
     }
+
     public void handleThemeChange() {
         prefsForm.onThemeChanged(selected -> {
             String themeKey = selected.equals(LanguageManager.get("theme.option.dark")) ? "dark" : "light";
@@ -361,10 +371,6 @@ public class AppFrame extends JFrame {
                         this.currentAdjacencyList = csrrgParser.getAdjacencyList4();
                         this.currentAdjacencyIndices = csrrgParser.getAdjacencyIndices5();
                         this.isGraphLoaded = true;
-                        System.out.println("-----App Frame-----");
-                        System.out.println("Vertex count: " + currentVertexCount);
-                        System.out.println("AdjacencyList size: " + currentAdjacencyList.size());
-                        System.out.println("AdjacencyIndices: " + currentAdjacencyIndices);
 
                         JOptionPane.showMessageDialog(this,
                                 "Plik CSRRG wczytany: " + selectedFile.getAbsolutePath(),
@@ -375,7 +381,6 @@ public class AppFrame extends JFrame {
                                 currentAdjacencyList,
                                 currentAdjacencyIndices
                         );
-                        System.out.println("Jestem po inicjalizacji " );
                     } catch (Exception e) {
                         this.isGraphLoaded = false;
                         JOptionPane.showMessageDialog(this,
@@ -538,6 +543,14 @@ public class AppFrame extends JFrame {
     // Metody pomocnicze dla dostępu do danych grafu
     public void setIsGraphLoaded(boolean bool) {
         isGraphLoaded = bool;
+    }
+
+    public boolean isGraphLoaded() {
+        return isGraphLoaded;
+    }
+
+    public int getCurrentVertexCount() {
+        return currentVertexCount;
     }
 
     public List<Integer> getCurrentAdjacencyList() {

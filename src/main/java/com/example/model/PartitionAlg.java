@@ -6,9 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.IntStream;
 
 public class PartitionAlg {
@@ -336,6 +334,17 @@ public class PartitionAlg {
         } catch (IOException e) {
             System.err.println("[!] Błąd zapisu ewaluacji: " + e.getMessage());
         }
+    }
+
+    public Map<Integer, Integer> getPartitionGroups() {
+        Map<Integer, Integer> result = new HashMap<>();
+
+        // Konwersja listy verticiesPart na mapę wierzchołek -> grupa
+        for (int vertexId = 0; vertexId < verticiesPart.size(); vertexId++) {
+            result.put(vertexId, verticiesPart.get(vertexId));
+        }
+
+        return result;
     }
 
     public int getMargin(){
