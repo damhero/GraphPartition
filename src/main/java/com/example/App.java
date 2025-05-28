@@ -21,29 +21,29 @@ public class App {
         new AppFrame();
 
 
-        //testy dla Txt Parser
-        File txtFile = new File(App.class.getClassLoader().getResource("graphs/graf_2.txt").toURI());
-        System.out.println("TXT loaded parted graph:");
-        ArrayList<Group> parted = TXTParser.parse(txtFile);
-        for(Group group : parted) {
-            System.out.println(group.getGroupId());
-            ArrayList<ArrayList<Integer>> pairs = group.getAdjacencyPairs();
-            for(ArrayList<Integer> pair : pairs) {
-                System.out.println(pair.toString());
-            }
-        }
+//        //testy dla Txt Parser
+//        File txtFile = new File(App.class.getClassLoader().getResource("graphs/graf_2.txt").toURI());
+//        System.out.println("TXT loaded parted graph:");
+//        ArrayList<Group> parted = TXTParser.parse(txtFile);
+//        for(Group group : parted) {
+//            System.out.println(group.getGroupId());
+//            ArrayList<ArrayList<Integer>> pairs = group.getAdjacencyPairs();
+//            for(ArrayList<Integer> pair : pairs) {
+//                System.out.println(pair.toString());
+//            }
+//        }
 
-        //test dla BIN parser
-        File binFile = new File(App.class.getClassLoader().getResource("graphs/graf_2.bin").toURI());
-        System.out.println("BIN loaded parted graph:");
-        ArrayList<Group> partedBin = BINParser.parse(binFile);
-        for(Group group : partedBin) {
-            System.out.println(group.getGroupId());
-            ArrayList<ArrayList<Integer>> pairs = group.getAdjacencyPairs();
-            for(ArrayList<Integer> pair : pairs) {
-                System.out.println(pair.toString());
-            }
-        }
+//        //test dla BIN parser
+//        File binFile = new File(App.class.getClassLoader().getResource("graphs/graf_2.bin").toURI());
+//        System.out.println("BIN loaded parted graph:");
+//        ArrayList<Group> partedBin = BINParser.parse(binFile);
+//        for(Group group : partedBin) {
+//            System.out.println(group.getGroupId());
+//            ArrayList<ArrayList<Integer>> pairs = group.getAdjacencyPairs();
+//            for(ArrayList<Integer> pair : pairs) {
+//                System.out.println(pair.toString());
+//            }
+//        }
 
 
 //        //testy dla CSRRG Parser

@@ -27,6 +27,7 @@ public class AppFrame extends JFrame {
     private final PreferencesView prefsForm;
     private CSRRGParser csrrgParser;
     private int currentVertexCount;
+    private String currentGraphFormat = ""; // Możliwe wartości: "txt", "bin"
 
     // Dodajemy zmienne do przechowywania danych grafu niezależnie od parsera
     private ArrayList<Integer> currentAdjacencyList;
@@ -49,7 +50,7 @@ public class AppFrame extends JFrame {
         // utwórz widoki
         mainFrame = new MainView();
         mainFrame.setAppFrame(this);
-
+        updateButtonStates();
         // Poprawiony ActionListener dla przycisku podziału
         mainFrame.getDivideButton().addActionListener(e -> performGraphPartition());
 
@@ -381,6 +382,8 @@ public class AppFrame extends JFrame {
                                 currentAdjacencyList,
                                 currentAdjacencyIndices
                         );
+                        this.currentGraphFormat="csrrg";
+                        updateButtonStates();
                     } catch (Exception e) {
                         this.isGraphLoaded = false;
                         JOptionPane.showMessageDialog(this,
@@ -438,6 +441,8 @@ public class AppFrame extends JFrame {
                                 "Plik TXT wczytany: " + selectedFile.getAbsolutePath(),
                                 "Sukces", JOptionPane.INFORMATION_MESSAGE);
                         mainFrame.getGraphPanel().repaint();
+                        this.currentGraphFormat="txt";
+                        updateButtonStates();
                     } catch (Exception e) {
                         this.isGraphLoaded = false;
                         JOptionPane.showMessageDialog(this,
@@ -495,6 +500,8 @@ public class AppFrame extends JFrame {
                                 "Plik BIN wczytany: " + selectedFile.getAbsolutePath(),
                                 "Sukces", JOptionPane.INFORMATION_MESSAGE);
                         mainFrame.getGraphPanel().repaint();
+                        this.currentGraphFormat="bin";
+                        updateButtonStates();
                     } catch (Exception e) {
                         this.isGraphLoaded = false;
                         JOptionPane.showMessageDialog(this,
@@ -538,7 +545,18 @@ public class AppFrame extends JFrame {
         CardLayout cl = (CardLayout) cards.getLayout();
         cl.show(cards, viewName);
     }
+    private void updateButtonStates() {
+        // Wyłącz przycisk, jeśli format to TXT lub BIN
+        if ("txt".equals(currentGraphFormat) || "bin".equals(currentGraphFormat)) {
+            mainFrame.getDivideButton().setEnabled(false);
 
+            // Opcjonalnie: dodaj podpowiedź wyjaśniającą dlaczego przycisk jest nieaktywny
+            mainFrame.getDivideButton().setToolTipText("Podział grafu nie jest dostępny dla formatu " + currentGraphFormat.toUpperCase());
+        } else {
+            mainFrame.getDivideButton().setEnabled(true);
+            mainFrame.getDivideButton().setToolTipText(null); // Usuń podpowiedź jeśli była wcześniej ustawiona
+        }
+    }
 
     // Metody pomocnicze dla dostępu do danych grafu
     public void setIsGraphLoaded(boolean bool) {

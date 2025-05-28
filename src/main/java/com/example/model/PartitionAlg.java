@@ -37,6 +37,8 @@ public class PartitionAlg {
     private void spectralPartition(Graph graph) {
         int V = graph.getVertexCount();
         try {
+            //TODO usunac wszystkie printy debugujace
+            //TODO ogolnie komentarze posprzatac
             System.out.println("Rozpoczynam podział spektralny grafu o " + V + " wierzchołkach...");
 
             double[] fielder = computeFiedlerVectorImplicit(graph, V);
@@ -91,7 +93,7 @@ public class PartitionAlg {
         int bestCutPoint = V / 2; // Domyślnie dzielimy po prostu w połowie
         int minCutEdges = Integer.MAX_VALUE;
 
-        System.out.println("Testuję punkty podziału od " + minCutSize + " do " + maxCutSize);
+//        System.out.println("Testuję punkty podziału od " + minCutSize + " do " + maxCutSize);
 
         boolean[] tempPartition = new boolean[V];
 
@@ -113,11 +115,11 @@ public class PartitionAlg {
 
             // Informacja o postępie co 10% testów
             if ((cutPoint - minCutSize) % Math.max(1, (maxCutSize - minCutSize) / 10) == 0) {
-                System.out.println("Przetestowano punkt " + cutPoint + ", najlepszy cut: " + minCutEdges);
+//                System.out.println("Przetestowano punkt " + cutPoint + ", najlepszy cut: " + minCutEdges);
             }
         }
 
-        System.out.println("Znaleziono optymalny punkt: " + bestCutPoint + " z " + minCutEdges + " przecięciami");
+//        System.out.println("Znaleziono optymalny punkt: " + bestCutPoint + " z " + minCutEdges + " przecięciami");
 
         // Zastosuj najlepszy znaleziony podział
         for (int i = 0; i < V; i++) {
@@ -183,7 +185,7 @@ public class PartitionAlg {
         double EPSILON = 1e-10;
         double lambda = 0.0;
 
-        System.out.println("Rozpoczynam iteracje potęgowe...");
+//        System.out.println("Rozpoczynam iteracje potęgowe...");
         for (int iter = 0; iter < maxIter; iter++) {
             // Zachowujemy poprzedni wektor x do sprawdzenia zbieżności
             System.arraycopy(x, 0, prevX, 0, V);
@@ -217,13 +219,13 @@ public class PartitionAlg {
             }
 
             if (diff < EPSILON) {
-                System.out.println("Zbieżność osiągnięta po " + iter + " iteracjach. Lambda = " + lambda);
+//                System.out.println("Zbieżność osiągnięta po " + iter + " iteracjach. Lambda = " + lambda);
                 break;
             }
 
             // Informacja o postępie co 50 iteracji
             if (iter % 50 == 0) {
-                System.out.println("Iteracja " + iter + ", różnica = " + String.format("%.2e", diff));
+//                System.out.println("Iteracja " + iter + ", różnica = " + String.format("%.2e", diff));
             }
         }
 
