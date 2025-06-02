@@ -93,8 +93,6 @@ public class PartitionAlg {
         int bestCutPoint = V / 2; // Domyślnie dzielimy po prostu w połowie
         int minCutEdges = Integer.MAX_VALUE;
 
-//        System.out.println("Testuję punkty podziału od " + minCutSize + " do " + maxCutSize);
-
         boolean[] tempPartition = new boolean[V];
 
         // Sprawdzamy różne punkty podziału w ramach dozwolonego marginesu
@@ -115,11 +113,8 @@ public class PartitionAlg {
 
             // Informacja o postępie co 10% testów
             if ((cutPoint - minCutSize) % Math.max(1, (maxCutSize - minCutSize) / 10) == 0) {
-//                System.out.println("Przetestowano punkt " + cutPoint + ", najlepszy cut: " + minCutEdges);
             }
         }
-
-//        System.out.println("Znaleziono optymalny punkt: " + bestCutPoint + " z " + minCutEdges + " przecięciami");
 
         // Zastosuj najlepszy znaleziony podział
         for (int i = 0; i < V; i++) {
@@ -185,7 +180,6 @@ public class PartitionAlg {
         double EPSILON = 1e-10;
         double lambda = 0.0;
 
-//        System.out.println("Rozpoczynam iteracje potęgowe...");
         for (int iter = 0; iter < maxIter; iter++) {
             // Zachowujemy poprzedni wektor x do sprawdzenia zbieżności
             System.arraycopy(x, 0, prevX, 0, V);
@@ -219,13 +213,7 @@ public class PartitionAlg {
             }
 
             if (diff < EPSILON) {
-//                System.out.println("Zbieżność osiągnięta po " + iter + " iteracjach. Lambda = " + lambda);
                 break;
-            }
-
-            // Informacja o postępie co 50 iteracji
-            if (iter % 50 == 0) {
-//                System.out.println("Iteracja " + iter + ", różnica = " + String.format("%.2e", diff));
             }
         }
 
@@ -247,10 +235,10 @@ public class PartitionAlg {
                 degree = endIdx - startIdx;
             }
 
-            // Dodaj składnik z przekątnej: degree * x[i]
+            // Dodaj składnik z przekątnej
             result[i] += degree * x[i];
 
-            // Odejmij składniki od sąsiadów: -1 * x[sąsiad]
+            // Odejmij składniki od sąsiadów:
             if (i < graph.getAdjacencyIndices().size() - 1) {
                 int startIdx = graph.getAdjacencyIndices().get(i);
                 int endIdx = graph.getAdjacencyIndices().get(i + 1);

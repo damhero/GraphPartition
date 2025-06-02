@@ -62,7 +62,7 @@ public class MainView {
 
         if (resetViewButton != null) {
             resetViewButton.addActionListener(e -> {
-                setupExampleGraph();  // przywróć przykładowy trójkąt
+                setupExampleGraph();  // przywróć przykładow trójkąt
                 //Początkowe ustawienia sliderów
                 slider1.setValue(10);
                 slider2.setValue(2);
@@ -73,7 +73,7 @@ public class MainView {
         }
     }
 
-    // Przykładowa metoda do ustawienia danych grafu - usuń gdy będziesz mieć prawdziwe dane
+
     private void setupExampleGraph() {
         // Przykładowy graf: 0-1, 1-2, 2-0 (trójkąt)
         List<Integer> adjacencyList = Arrays.asList(1, 2, 0, 2, 0, 1);
@@ -82,13 +82,6 @@ public class MainView {
         graphPanel.setGraphData(3, adjacencyList, adjacencyIndices, false);
     }
 
-    // Meoda do ustawienia prawdziwych danych grafu
-    // Ta metoda ma no usages i to dobrze, bo to będzie źle działać, przeciążenie setGraphData i oblicznaie vertexCount jest błędnie zrobione
-//    public void setGraphData(List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
-//        if (graphPanel != null) {
-//            graphPanel.setGraphData(adjacencyList, adjacencyIndices);
-//        }
-//    }
 
     public void applyLanguage() {
         if (numOfDividesLabel != null) {

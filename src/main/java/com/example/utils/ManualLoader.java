@@ -9,11 +9,7 @@ import java.util.stream.Collectors;
 
 public class ManualLoader {
 
-    /**
-     * Wczytuje zawartość instrukcji obsługi dla danego języka
-     * @param language kod języka (np. "pl", "en")
-     * @return zawartość instrukcji obsługi jako String
-     */
+
     public static String loadManual(String language) {
         String manualPath = "/manual/manual_" + language + ".md";
         try (InputStream is = ManualLoader.class.getResourceAsStream(manualPath);

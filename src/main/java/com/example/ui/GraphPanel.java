@@ -37,14 +37,7 @@ public class GraphPanel extends JPanel {
         setupMouseListeners();
     }
 
-    /**
-     * Ustawia dane grafu bezpośrednio, bez potrzeby tworzenia obiektu Graph.
-     * Użyteczne gdy mamy już przygotowane dane w odpowiednim formacie.
-     *
-     * @param vertexCount liczba wierzchołków w grafie
-     * @param adjacencyList lista sąsiedztwa zawierająca połączenia między wierzchołkami
-     * @param adjacencyIndices indeksy w liście sąsiedztwa dla każdego wierzchołka
-     */
+
     public void setGraphData(int vertexCount, List<Integer> adjacencyList, List<Integer> adjacencyIndices, boolean bool) {
         try {
             Graph tempGraph = new Graph(vertexCount, adjacencyList, adjacencyIndices);
@@ -63,8 +56,7 @@ public class GraphPanel extends JPanel {
 
 
     public void setGraph(Graph graph) {
-        if (this.graph != null && graph != null &&
-                this.graph.getVertexCount() == graph.getVertexCount()) {
+        if (this.graph != null && graph != null && this.graph.getVertexCount() == graph.getVertexCount()) {
             // Zachowaj stare pozycje
         } else {
             // Wyczyść pozycje tylko jeśli zmienił się graf
@@ -73,7 +65,6 @@ public class GraphPanel extends JPanel {
         }
 
         this.graph = graph;
-//        this.graphLoaded = (graph != null);  // Ustaw flagę na true, jeśli graf nie jest null
 
         // Generuj layout od razu przy ustawianiu grafu
         if (!layoutGenerated) {
@@ -85,12 +76,10 @@ public class GraphPanel extends JPanel {
         repaint();
     }
 
-    /**
-     * Zastosowuje wyniki podziału grafu do wizualizacji
-     *
-     * @param partitionGroups mapa przypisująca wierzchołki do grup (klucz: indeks wierzchołka, wartość: grupa)
-     * @param groupCount liczba grup w podziale
-     */
+
+
+
+    //Zastosowuje wyniki podziału grafu do wizualizacji
     public void applyPartition(Map<Integer, Integer> partitionGroups, int groupCount) {
         // Wyczyść poprzednie dane podziału
         this.vertexGroups.clear();
@@ -109,11 +98,9 @@ public class GraphPanel extends JPanel {
         // Odświeżenie widoku
         repaint();
     }
-    /**
-     * Generuje listę kolorów dla poszczególnych grup podziału
-     *
-     * @param groupCount liczba grup w podziale
-     */
+
+
+     //Generuje listę kolorów dla poszczególnych grup podziału
     private void generateGroupColors(int groupCount) {
         groupColors.clear();
 
@@ -126,12 +113,7 @@ public class GraphPanel extends JPanel {
         }
     }
 
-    /**
-     * Zwraca kolor dla określonej grupy
-     *
-     * @param groupId identyfikator grupy
-     * @return kolor przypisany do grupy
-     */
+
     public Color getGroupColor(int groupId) {
         if (groupId >= 0 && groupId < groupColors.size()) {
             return groupColors.get(groupId);
@@ -585,29 +567,23 @@ public class GraphPanel extends JPanel {
                 }
             }
         }
-    }    /**
-     * Resetuje podział grafu i przywraca domyślną wizualizację
-     */
+    }
+
+
     public void resetPartition() {
         partitionApplied = false;
         vertexGroups.clear();
         repaint();
     }
 
-    /**
-     * Zwraca informację czy graf ma zastosowany podział
-     *
-     * @return true jeśli podział został zastosowany, false w przeciwnym razie
-     */
+
     public boolean isPartitionApplied() {
         return partitionApplied;
     }
 
-    /**
-     * Eksportuje dane podziału do formatu umożliwiającego dalsze przetwarzanie
-     *
-     * @return mapa wierzchołków i ich grup
-     */
+
+    // Eksportuje dane podziału do formatu umożliwiającego dalsze przetwarzanie
+
     public Map<Integer, Integer> getPartitionData() {
         return new HashMap<>(vertexGroups);
     }
@@ -639,14 +615,8 @@ public class GraphPanel extends JPanel {
             }
         }
     }
-    /**
-     * Eksportuje kolory grup do wykorzystania w innych komponentach
-     *
-     * @return lista kolorów przypisanych do grup
-     */
+
     public List<Color> getGroupColors() {
         return new ArrayList<>(groupColors);
     }
-
-
 }

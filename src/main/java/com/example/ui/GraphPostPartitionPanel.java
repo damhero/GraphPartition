@@ -9,10 +9,10 @@ import java.awt.geom.*;
 import java.util.*;
 import java.util.List;
 
-/**
- * Panel wizualizujący graf po partycjonowaniu, pokazujący kolorowane komponenty.
- * Wykorzystuje podobne mechanizmy nawigacji jak GraphPanel.
- */
+
+// Panel wizualizujący graf po partycjonowaniu, pokazujący kolorowane komponenty.
+// Wykorzystuje podobne mechanizmy nawigacji jak GraphPanel.
+
 public class GraphPostPartitionPanel extends JPanel {
     private Graph graph;
     private List<PartitionInfo> partitions;
@@ -48,18 +48,15 @@ public class GraphPostPartitionPanel extends JPanel {
     private Set<Integer> visibleVertices = new HashSet<>();
     private Rectangle2D viewportBounds;
 
-    /**
-     * Tworzy nowy panel wizualizacji grafu po partycjonowaniu.
-     */
+
+    // Tworzy nowy panel wizualizacji grafu po partycjonowaniu.
     public GraphPostPartitionPanel(AppFrame parentFrame) {
         this.parentFrame = parentFrame;
         setBackground(Color.WHITE);
         setupMouseListeners();
     }
 
-    /**
-     * Klasa reprezentująca informacje o partycji grafu.
-     */
+     // Klasa reprezentująca informacje o partycji grafu.
     public static class PartitionInfo {
         private Map<Integer, List<Integer>> componentVertices;
 
@@ -72,19 +69,16 @@ public class GraphPostPartitionPanel extends JPanel {
         }
     }
 
-    /**
-     * Interfejs do aktualizacji informacji o widoku grafu.
-     */
+
+    // Interfejs do aktualizacji informacji o widoku grafu.
+
     public interface PartitionViewListener {
         void updateViewZoomInfo(double zoomLevel, int visibleVertices, int totalVertices);
     }
 
     private PartitionViewListener viewListener;
 
-    /**
-     * Ustawia graf i partycje do wizualizacji.
-     * Zachowuje pozycje wierzchołków jeśli graf ma tę samą liczbę wierzchołków.
-     */
+
     public void setGraph(Graph graph, List<PartitionInfo> partitions) {
         if (this.graph != null && graph != null &&
                 this.graph.getVertexCount() == graph.getVertexCount()) {
@@ -109,9 +103,7 @@ public class GraphPostPartitionPanel extends JPanel {
         repaint();
     }
 
-    /**
-     * Ustawia graf na podstawie danych z AppFrame.
-     */
+
     public void setGraphFromAppFrame() {
         if (parentFrame != null && parentFrame.isGraphLoaded()) {
             int vertexCount = parentFrame.getCurrentVertexCount();
@@ -125,9 +117,7 @@ public class GraphPostPartitionPanel extends JPanel {
         }
     }
 
-    /**
-     * Ustawia partycje grafu.
-     */
+
     public void setPartitions(List<PartitionInfo> partitions) {
         this.partitions = partitions;
         if (graph != null && !layoutGenerated) {
@@ -138,10 +128,7 @@ public class GraphPostPartitionPanel extends JPanel {
         repaint();
     }
 
-    /**
-     * Generuje layout grafu bazujący na partycjach.
-     * Każda partycja jest umieszczona w osobnym obszarze ekranu.
-     */
+
     private void generateLayout() {
         if (graph == null || partitions == null || partitions.isEmpty()) return;
 
@@ -174,9 +161,9 @@ public class GraphPostPartitionPanel extends JPanel {
         }
     }
 
-    /**
-     * Konfiguruje obsługę zdarzeń myszy do nawigacji po grafie.
-     */
+
+     // Konfiguruje obsługę zdarzeń myszy do nawigacji po grafie.
+
     private void setupMouseListeners() {
         addMouseListener(new MouseAdapter() {
             @Override
@@ -216,9 +203,8 @@ public class GraphPostPartitionPanel extends JPanel {
         });
     }
 
-    /**
-     * Aktualizuje informacje o widocznym obszarze grafu.
-     */
+
+     // Aktualizuje informacje o widocznym obszarze grafu.
     private void updateViewport() {
         try {
             AffineTransform inverse = viewTransform().createInverse();
@@ -254,9 +240,7 @@ public class GraphPostPartitionPanel extends JPanel {
         }
     }
 
-    /**
-     * Zwraca transformację widoku bazującą na przesunięciu i poziomie przybliżenia.
-     */
+    // Zwraca transformację widoku bazującą na przesunięciu i poziomie przybliżenia.
     private AffineTransform viewTransform() {
         AffineTransform transform = new AffineTransform();
         transform.scale(zoomLevel, zoomLevel);
@@ -286,9 +270,7 @@ public class GraphPostPartitionPanel extends JPanel {
         g2d.setTransform(originalTransform);
     }
 
-    /**
-     * Rysuje krawędzie grafu z uwzględnieniem partycji.
-     */
+    // Rysuje krawędzie grafu z uwzględnieniem partycji.
     private void drawEdges(Graphics2D g2d) {
         if (graph == null || partitions == null || partitions.isEmpty()) return;
 
@@ -327,9 +309,8 @@ public class GraphPostPartitionPanel extends JPanel {
         }
     }
 
-    /**
-     * Rysuje wierzchołki grafu z uwzględnieniem partycji.
-     */
+
+    // Rysuje wierzchołki grafu z uwzględnieniem partycji.
     private void drawVertices(Graphics2D g2d) {
         if (graph == null || partitions == null || partitions.isEmpty()) return;
 
@@ -383,32 +364,28 @@ public class GraphPostPartitionPanel extends JPanel {
         }
     }
 
-    /**
-     * Oblicza rozmiar wierzchołka w zależności od poziomu przybliżenia.
-     */
+
+    // Oblicza rozmiar wierzchołka w zależności od poziomu przybliżenia.
     private int calculateVertexSize() {
         // Dynamiczny rozmiar wierzchołka w zależności od zoomu
         double scaledSize = BASE_VERTEX_SIZE / Math.sqrt(zoomLevel);
         return (int) Math.max(MIN_VERTEX_SIZE, Math.min(scaledSize, MAX_VERTEX_SIZE));
     }
 
-    /**
-     * Zwraca kolor dla danego komponentu.
-     */
+
+    // Zwraca kolor dla danego komponentu.
     private Color getComponentColor(int componentIndex) {
         return COMPONENT_COLORS[Math.abs(componentIndex) % COMPONENT_COLORS.length];
     }
 
-    /**
-     * Zwraca kopię mapy pozycji wierzchołków.
-     */
+     // Zwraca kopię mapy pozycji wierzchołków
     public Map<Integer, Point2D> getVertexPositions() {
         return new HashMap<>(vertexPositions);
     }
 
-    /**
-     * Ustawia pozycje wierzchołków na podstawie przekazanej mapy.
-     */
+
+
+    // Ustawia pozycje wierzchołków na podstawie przekazanej mapy.
     public void setVertexPositions(Map<Integer, Point2D> positions) {
         if (positions != null) {
             this.vertexPositions = new HashMap<>(positions);
@@ -418,16 +395,13 @@ public class GraphPostPartitionPanel extends JPanel {
         }
     }
 
-    /**
-     * Ustawia listener do aktualizacji informacji o widoku.
-     */
+
+    // Ustawia listener do aktualizacji informacji o widoku
     public void setViewListener(PartitionViewListener listener) {
         this.viewListener = listener;
     }
 
-    /**
-     * Resetuje widok grafu do początkowego stanu.
-     */
+    // Resetuje widok grafu do początkowego stanu.
     public void resetView() {
         zoomLevel = 1.0;
         panOffset.setLocation(0, 0);
@@ -435,9 +409,7 @@ public class GraphPostPartitionPanel extends JPanel {
         repaint();
     }
 
-    /**
-     * Aktualizuje layout grafu na podstawie aktualnych partycji.
-     */
+    //Aktualizuje layout grafu na podstawie aktualnych partycji.
     public void updateLayout() {
         if (graph != null && partitions != null && !partitions.isEmpty()) {
             generateLayout();
@@ -446,10 +418,6 @@ public class GraphPostPartitionPanel extends JPanel {
         }
     }
 
-    /**
-     * Metoda importująca pozycje wierzchołków z GraphPanel.
-     * Umożliwia zachowanie układu grafu z poprzedniego widoku.
-     */
     public void importPositionsFromGraphPanel(GraphPanel graphPanel) {
         if (graphPanel != null && graph != null) {
             Map<Integer, Point2D> positions = graphPanel.getVertexPositions();

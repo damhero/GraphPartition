@@ -57,7 +57,6 @@ public class TXTParser {
         br.close();
 
     } catch (Exception e) {
-        //TODO: komunikaty na ekranie.
         System.err.println("[!] Błąd podczas parsowania TXT" + e);
         System.exit(1);
     }

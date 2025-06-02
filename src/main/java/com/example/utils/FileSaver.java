@@ -5,9 +5,7 @@ import java.util.*;
 
 public class FileSaver {
 
-    /**
-     * Zapisuje graf w formacie TXT
-     */
+    // Zapisuje graf w formacie TXT
     public static void saveTxtFormat(File file, int vertexCount, List<Integer> adjacencyList, List<Integer> adjacencyIndices,
                                      Map<Integer, Integer> partitionData, boolean hasPartition) throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
@@ -90,9 +88,7 @@ public class FileSaver {
         }
     }
 
-    /**
-     * Zapisuje graf w formacie BIN
-     */
+    // Zapisuje graf w formacie BIN
     public static void saveBinFormat(File file, int vertexCount, List<Integer> adjacencyList, List<Integer> adjacencyIndices,
                                      Map<Integer, Integer> partitionData, boolean hasPartition) throws IOException {
         try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(file))) {

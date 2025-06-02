@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AppFrame extends JFrame {
     private final JPanel cards; // główny panel z CardLayout
@@ -47,7 +46,7 @@ public class AppFrame extends JFrame {
         mainFrame = new MainView();
         mainFrame.setAppFrame(this);
         updateButtonStates();
-        // Poprawiony ActionListener dla przycisku podziału
+
         mainFrame.getDivideButton().addActionListener(e -> performGraphPartition());
 
         prefsForm = new PreferencesView();
@@ -89,8 +88,6 @@ public class AppFrame extends JFrame {
             PartitionAlg partition = new PartitionAlg(graph, numParts, margin);
 
             // Pobierz wyniki podziału z obiektu partition
-            // Zakładam, że PartitionAlg ma metodę getPartitions() lub podobną,
-            // która zwraca informacje o podziale grafu
             Map<Integer, Integer> partitionGroups = partition.getPartitionGroups();
 
             // Określenie liczby grup w podziale
@@ -219,7 +216,7 @@ public class AppFrame extends JFrame {
     private void showPartitionResult(){
         File evalFile = new File("output/partition_eval.txt");
         if (!evalFile.exists()) {
-            JOptionPane.showMessageDialog(this, "Brak danych ewaluacji!", "Błąd", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, LanguageManager.get("analyze.no.data"), "Błąd", JOptionPane.ERROR_MESSAGE); //"Brak danych ewaluacji!"
             return;
         }
 
@@ -440,7 +437,6 @@ public class AppFrame extends JFrame {
                         for(Group g : groups){
                             Map<Integer, Integer> tempGroupPartition = g.getPartitionGroups();
                             partitionGroups.putAll(tempGroupPartition);
-                            System.out.println(tempGroupPartition.toString());
                         }
 
 
@@ -471,7 +467,7 @@ public class AppFrame extends JFrame {
                     }
                 } else if (expectedExtension.equals("bin")) {
                     try {
-                        var groups = com.example.utils.BINParser.parse(selectedFile);
+                        var groups = com.example.utils.BINParser.parsel(selectedFile);
 
                         // Oblicz maksymalny indeks wierzchołka
                         int maxVertex = 0;
@@ -521,7 +517,6 @@ public class AppFrame extends JFrame {
                         for(Group g : groups){
                             Map<Integer, Integer> tempGroupPartition = g.getPartitionGroups();
                             partitionGroups.putAll(tempGroupPartition);
-                            System.out.println(tempGroupPartition.toString());
                         }
 
 
@@ -559,82 +554,60 @@ public class AppFrame extends JFrame {
         }
     }
 
-//    private void saveFile(String expectedExtension) {
-//        JFileChooser fileChooser = new JFileChooser();
-//        fileChooser.setDialogTitle("Zapisz plik jako *." + expectedExtension);
-//        fileChooser.setAcceptAllFileFilterUsed(false);
-//        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-//                "."+expectedExtension, expectedExtension));
-//
-//        int result = fileChooser.showSaveDialog(this);
-//        if (result == JFileChooser.APPROVE_OPTION) {
-//            File selectedFile = fileChooser.getSelectedFile();
-//            String path = selectedFile.getAbsolutePath();
-//
-//            // Dodaj rozszerzenie, jeśli nie zostało podane
-//            if (!path.toLowerCase().endsWith("." + expectedExtension)) {
-//                selectedFile = new File(path + "." + expectedExtension);
-//            }
-//
-//            // TODO: tutaj zapisz dane do selectedFile
-//            JOptionPane.showMessageDialog(this,
-//                    "Zapisano do pliku: " + selectedFile.getAbsolutePath(),
-//                    "Zapisano", JOptionPane.INFORMATION_MESSAGE);
-//        }
-//    }
-private void saveFile(String expectedExtension) {
-    JFileChooser fileChooser = new JFileChooser();
-    fileChooser.setDialogTitle("Zapisz plik jako *." + expectedExtension);
-    fileChooser.setAcceptAllFileFilterUsed(false);
-    fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-            "."+expectedExtension, expectedExtension));
+    //obsługa zapisywania do pliku
+    private void saveFile(String expectedExtension) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Zapisz plik jako *." + expectedExtension);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "."+expectedExtension, expectedExtension));
 
-    int result = fileChooser.showSaveDialog(this);
-    if (result == JFileChooser.APPROVE_OPTION) {
-        File selectedFile = fileChooser.getSelectedFile();
-        String path = selectedFile.getAbsolutePath();
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            String path = selectedFile.getAbsolutePath();
 
-        // Dodaj rozszerzenie, jeśli nie zostało podane
-        if (!path.toLowerCase().endsWith("." + expectedExtension)) {
-            selectedFile = new File(path + "." + expectedExtension);
-        }
-
-        // Sprawdź, czy graf jest załadowany
-        if (!isGraphLoaded) {
-            JOptionPane.showMessageDialog(this,
-                    "Brak wczytanego grafu do zapisania!",
-                    "Błąd", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        try {
-            // Pobierz dane grafu
-            int vertexCount = currentVertexCount;
-            List<Integer> adjacencyList = currentAdjacencyList;
-            List<Integer> adjacencyIndices = currentAdjacencyIndices;
-
-            // Pobierz informacje o podziale grafu (jeśli istnieje)
-            Map<Integer, Integer> partitionData = mainFrame.getGraphPanel().getPartitionData();
-            boolean hasPartition = !partitionData.isEmpty();
-
-            // Utwórz macierz sąsiedztwa dla formatu TXT
-            if (expectedExtension.equals("txt")) {
-                FileSaver.saveTxtFormat(selectedFile, vertexCount, adjacencyList, adjacencyIndices, partitionData, hasPartition);
-            } else if (expectedExtension.equals("bin")) {
-                FileSaver.saveBinFormat(selectedFile, vertexCount, adjacencyList, adjacencyIndices, partitionData, hasPartition);
+            // Dodaj rozszerzenie, jeśli nie zostało podane
+            if (!path.toLowerCase().endsWith("." + expectedExtension)) {
+                selectedFile = new File(path + "." + expectedExtension);
             }
 
-            JOptionPane.showMessageDialog(this,
-                    "Zapisano do pliku: " + selectedFile.getAbsolutePath(),
-                    "Zapisano", JOptionPane.INFORMATION_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this,
-                    "Błąd podczas zapisywania pliku: " + e.getMessage(),
-                    "Błąd", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+            // Sprawdź, czy graf jest załadowany
+            if (!isGraphLoaded) {
+                JOptionPane.showMessageDialog(this,
+                        "Brak wczytanego grafu do zapisania!",
+                        "Błąd", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try {
+                // Pobierz dane grafu
+                int vertexCount = currentVertexCount;
+                List<Integer> adjacencyList = currentAdjacencyList;
+                List<Integer> adjacencyIndices = currentAdjacencyIndices;
+
+                // Pobierz informacje o podziale grafu (jeśli istnieje)
+                Map<Integer, Integer> partitionData = mainFrame.getGraphPanel().getPartitionData();
+                boolean hasPartition = !partitionData.isEmpty();
+
+                // Utwórz macierz sąsiedztwa dla formatu TXT
+                if (expectedExtension.equals("txt")) {
+                    FileSaver.saveTxtFormat(selectedFile, vertexCount, adjacencyList, adjacencyIndices, partitionData, hasPartition);
+                } else if (expectedExtension.equals("bin")) {
+                    FileSaver.saveBinFormat(selectedFile, vertexCount, adjacencyList, adjacencyIndices, partitionData, hasPartition);
+                }
+
+                JOptionPane.showMessageDialog(this,
+                        "Zapisano do pliku: " + selectedFile.getAbsolutePath(),
+                        "Zapisano", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this,
+                        "Błąd podczas zapisywania pliku: " + e.getMessage(),
+                        "Błąd", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
         }
     }
-}
 
 
     private void switchView(String viewName) {

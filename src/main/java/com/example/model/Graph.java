@@ -23,7 +23,7 @@ public class Graph {
     }
 
     public List<Integer>[] getNeighbors() {
-        @SuppressWarnings("unchecked")
+
         List<Integer>[] neighbors = new ArrayList[vertexCount];
 
         for (int i = 0; i < vertexCount; i++) {
@@ -59,13 +59,6 @@ public class Graph {
     public ArrayList<Integer> getAdjacencyIndices() {
         return adjacencyIndices;
     }
-
-
-
-
-
-
-
 }
 
 

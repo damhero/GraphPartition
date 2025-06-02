@@ -10,15 +10,9 @@ import java.util.Arrays;
 
 public class BINParser {
 
+    
+    
     public static ArrayList<Group> parse(File binFile) {
-        String binPath = binFile.getAbsolutePath();
-        String txtPath = binPath.substring(0, binPath.lastIndexOf(".")) + ".txt";
-        File txtFile = new File(txtPath);
-        return TXTParser.parse(txtFile);
-    }
-    
-    
-    public static ArrayList<Group> parseReal(File binFile) {
         ArrayList<Group> partedGraph = new ArrayList<>();
 
         try (FileInputStream fis = new FileInputStream(binFile);
@@ -97,7 +91,7 @@ public class BINParser {
                 if (bytesRead == 6) {
                     String groupStr = new String(groupBytes);
                     if (groupStr.equals("grupa ")) {
-                        // Przeczytaj numer grupy (ale w Twoim kodzie C nie widzę zapisu numeru...)
+                        // Przeczytaj numer grupy
                         // Zakładając że numer grupy to kolejne cyfry do newline
                         StringBuilder groupNumStr = new StringBuilder();
                         int b;
@@ -209,5 +203,12 @@ public class BINParser {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static ArrayList<Group> parsel(File binFile) {
+        String binPath = binFile.getAbsolutePath();
+        String txtPath = binPath.substring(0, binPath.lastIndexOf(".")) + ".txt";
+        File txtFile = new File(txtPath);
+        return TXTParser.parse(txtFile);
     }
 }
