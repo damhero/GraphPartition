@@ -1,8 +1,6 @@
 package com.example.model;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class Group {
     private final int groupId;
@@ -40,7 +38,23 @@ public class Group {
         for (ArrayList<Integer> adjacencyPair : adjacencyPairs) {
             group.addAdjacencyPair(new ArrayList<>(adjacencyPair));
         }
+
+        for (Integer vertex : vertices) {
+            group.addVertex(vertex);
+        }
+
+
         return group;
+    }
+
+    public Map<Integer, Integer> getPartitionGroups() {
+        Map<Integer, Integer> partitionGroups = new HashMap<>();
+        for(int vertex: vertices) {
+            partitionGroups.put(vertex, groupId);
+            System.out.println("Vertex: " + vertex + " belongs to group: " + groupId);
+        }
+        System.out.println(partitionGroups.toString());
+        return partitionGroups;
     }
 
 

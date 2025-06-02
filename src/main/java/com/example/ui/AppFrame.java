@@ -1,11 +1,9 @@
 package com.example.ui;
 
 import com.example.model.Graph;
+import com.example.model.Group;
 import com.example.model.PartitionAlg;
-import com.example.utils.LanguageManager;
-import com.example.utils.ManualLoader;
-import com.example.utils.ThemeManager;
-import com.example.utils.CSRRGParser;
+import com.example.utils.*;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -15,11 +13,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AppFrame extends JFrame {
     private final JPanel cards; // główny panel z CardLayout
@@ -185,8 +181,8 @@ public class AppFrame extends JFrame {
         JMenu menuWrite = new JMenu(LanguageManager.get("menu.write"));
         JMenuItem itemWriteText = new JMenuItem(LanguageManager.get("menu.write.text"));
         JMenuItem itemWriteBin = new JMenuItem(LanguageManager.get("menu.write.bin"));
-        itemWriteText.addActionListener(e -> System.out.println("Zapisz tekstowy"));
-        itemWriteBin.addActionListener(e -> System.out.println("Zapisz binarny"));
+        itemWriteText.addActionListener(e -> saveFile("txt"));
+        itemWriteBin.addActionListener(e -> saveFile("bin"));
         menuWrite.add(itemWriteText);
         menuWrite.add(itemWriteBin);
 
@@ -363,6 +359,7 @@ public class AppFrame extends JFrame {
             String fileName = selectedFile.getName();
 
             if (fileName.endsWith("." + expectedExtension)) {
+                mainFrame.getGraphPanel().resetPartition();
                 if (expectedExtension.equals("csrrg")) {
                     try {
                         this.csrrgParser = new CSRRGParser(selectedFile);
@@ -392,7 +389,7 @@ public class AppFrame extends JFrame {
                     }
                 } else if (expectedExtension.equals("txt")) {
                     try {
-                        var groups = com.example.utils.TXTParser.parse(selectedFile);
+                        ArrayList<Group> groups = TXTParser.parse(selectedFile);
 
                         // Oblicz maksymalny indeks wierzchołka
                         int maxVertex = 0;
@@ -437,10 +434,33 @@ public class AppFrame extends JFrame {
                         // Wyślij do panelu
                         mainFrame.getGraphPanel().setGraphData(nodeCount, adjacencyList, adjacencyIndices);
 
+
+                        // Przygotuj dane partycji
+                        Map<Integer, Integer> partitionGroups = new HashMap<>();
+                        for(Group g : groups){
+                            Map<Integer, Integer> tempGroupPartition = g.getPartitionGroups();
+                            partitionGroups.putAll(tempGroupPartition);
+                            System.out.println(tempGroupPartition.toString());
+                        }
+
+
+                        mainFrame.getGraphPanel().setGraphData(nodeCount, adjacencyList, adjacencyIndices);
+                        mainFrame.getGraphPanel().applyPartition(partitionGroups, groups.size());
+
+                        // Dodatkowe zapewnienie odświeżenia
+                        mainFrame.getGraphPanel().invalidate();
+                        mainFrame.getGraphPanel().revalidate();
+                        mainFrame.getGraphPanel().repaint();
+
+                        SwingUtilities.invokeLater(() -> {
+                            mainFrame.getGraphPanel().repaint();
+                        });
+
+
                         JOptionPane.showMessageDialog(this,
                                 "Plik TXT wczytany: " + selectedFile.getAbsolutePath(),
                                 "Sukces", JOptionPane.INFORMATION_MESSAGE);
-                        mainFrame.getGraphPanel().repaint();
+
                         this.currentGraphFormat="txt";
                         updateButtonStates();
                     } catch (Exception e) {
@@ -496,6 +516,28 @@ public class AppFrame extends JFrame {
                         // Wyślij do panelu
                         mainFrame.getGraphPanel().setGraphData(nodeCount, adjacencyList, adjacencyIndices);
 
+                        // Przygotuj dane partycji
+                        Map<Integer, Integer> partitionGroups = new HashMap<>();
+                        for(Group g : groups){
+                            Map<Integer, Integer> tempGroupPartition = g.getPartitionGroups();
+                            partitionGroups.putAll(tempGroupPartition);
+                            System.out.println(tempGroupPartition.toString());
+                        }
+
+
+                        mainFrame.getGraphPanel().setGraphData(nodeCount, adjacencyList, adjacencyIndices);
+                        mainFrame.getGraphPanel().applyPartition(partitionGroups, groups.size());
+
+                        // Dodatkowe zapewnienie odświeżenia
+                        mainFrame.getGraphPanel().invalidate();
+                        mainFrame.getGraphPanel().revalidate();
+                        mainFrame.getGraphPanel().repaint();
+
+                        SwingUtilities.invokeLater(() -> {
+                            mainFrame.getGraphPanel().repaint();
+                        });
+
+
                         JOptionPane.showMessageDialog(this,
                                 "Plik BIN wczytany: " + selectedFile.getAbsolutePath(),
                                 "Sukces", JOptionPane.INFORMATION_MESSAGE);
@@ -517,29 +559,83 @@ public class AppFrame extends JFrame {
         }
     }
 
-    private void saveFile(String expectedExtension) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Zapisz plik jako *." + expectedExtension);
-        fileChooser.setAcceptAllFileFilterUsed(false);
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-                "."+expectedExtension, expectedExtension));
+//    private void saveFile(String expectedExtension) {
+//        JFileChooser fileChooser = new JFileChooser();
+//        fileChooser.setDialogTitle("Zapisz plik jako *." + expectedExtension);
+//        fileChooser.setAcceptAllFileFilterUsed(false);
+//        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+//                "."+expectedExtension, expectedExtension));
+//
+//        int result = fileChooser.showSaveDialog(this);
+//        if (result == JFileChooser.APPROVE_OPTION) {
+//            File selectedFile = fileChooser.getSelectedFile();
+//            String path = selectedFile.getAbsolutePath();
+//
+//            // Dodaj rozszerzenie, jeśli nie zostało podane
+//            if (!path.toLowerCase().endsWith("." + expectedExtension)) {
+//                selectedFile = new File(path + "." + expectedExtension);
+//            }
+//
+//            // TODO: tutaj zapisz dane do selectedFile
+//            JOptionPane.showMessageDialog(this,
+//                    "Zapisano do pliku: " + selectedFile.getAbsolutePath(),
+//                    "Zapisano", JOptionPane.INFORMATION_MESSAGE);
+//        }
+//    }
+private void saveFile(String expectedExtension) {
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.setDialogTitle("Zapisz plik jako *." + expectedExtension);
+    fileChooser.setAcceptAllFileFilterUsed(false);
+    fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+            "."+expectedExtension, expectedExtension));
 
-        int result = fileChooser.showSaveDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            String path = selectedFile.getAbsolutePath();
+    int result = fileChooser.showSaveDialog(this);
+    if (result == JFileChooser.APPROVE_OPTION) {
+        File selectedFile = fileChooser.getSelectedFile();
+        String path = selectedFile.getAbsolutePath();
 
-            // Dodaj rozszerzenie, jeśli nie zostało podane
-            if (!path.toLowerCase().endsWith("." + expectedExtension)) {
-                selectedFile = new File(path + "." + expectedExtension);
+        // Dodaj rozszerzenie, jeśli nie zostało podane
+        if (!path.toLowerCase().endsWith("." + expectedExtension)) {
+            selectedFile = new File(path + "." + expectedExtension);
+        }
+
+        // Sprawdź, czy graf jest załadowany
+        if (!isGraphLoaded) {
+            JOptionPane.showMessageDialog(this,
+                    "Brak wczytanego grafu do zapisania!",
+                    "Błąd", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            // Pobierz dane grafu
+            int vertexCount = currentVertexCount;
+            List<Integer> adjacencyList = currentAdjacencyList;
+            List<Integer> adjacencyIndices = currentAdjacencyIndices;
+
+            // Pobierz informacje o podziale grafu (jeśli istnieje)
+            Map<Integer, Integer> partitionData = mainFrame.getGraphPanel().getPartitionData();
+            boolean hasPartition = !partitionData.isEmpty();
+
+            // Utwórz macierz sąsiedztwa dla formatu TXT
+            if (expectedExtension.equals("txt")) {
+                FileSaver.saveTxtFormat(selectedFile, vertexCount, adjacencyList, adjacencyIndices, partitionData, hasPartition);
+            } else if (expectedExtension.equals("bin")) {
+                FileSaver.saveBinFormat(selectedFile, vertexCount, adjacencyList, adjacencyIndices, partitionData, hasPartition);
             }
 
-            // TODO: tutaj zapisz dane do selectedFile
             JOptionPane.showMessageDialog(this,
                     "Zapisano do pliku: " + selectedFile.getAbsolutePath(),
                     "Zapisano", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "Błąd podczas zapisywania pliku: " + e.getMessage(),
+                    "Błąd", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
         }
     }
+}
+
 
     private void switchView(String viewName) {
         CardLayout cl = (CardLayout) cards.getLayout();

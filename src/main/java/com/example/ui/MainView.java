@@ -66,6 +66,7 @@ public class MainView {
                 //Początkowe ustawienia sliderów
                 slider1.setValue(10);
                 slider2.setValue(2);
+                graphPanel.resetPartition();
                 JOptionPane.showMessageDialog(mainPanel, LanguageManager.get("dialog.reset"));
                 appFrame.setIsGraphLoaded(false);
             });

@@ -57,6 +57,7 @@ public class GraphPanel extends JPanel {
     }
 
     public void setGraphData(int vertexCount, List<Integer> adjacencyList, List<Integer> adjacencyIndices) {
+        resetPartition();
         this.setGraphData(vertexCount, adjacencyList, adjacencyIndices, true);
     }
 
@@ -120,7 +121,7 @@ public class GraphPanel extends JPanel {
         for (int i = 0; i < groupCount; i++) {
             // Użycie HSB dla równomiernego rozłożenia kolorów
             float hue = (float) i / groupCount;
-            Color color = Color.getHSBColor(hue, 0.7f, 0.9f);
+            Color color = Color.getHSBColor(hue, 0.9f, 0.7f);
             groupColors.add(color);
         }
     }
